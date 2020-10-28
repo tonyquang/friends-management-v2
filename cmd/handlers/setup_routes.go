@@ -7,5 +7,5 @@ import (
 )
 
 func SetupRoutes(db *gorm.DB) http.Handler {
-
+	
 }

@@ -7,6 +7,7 @@ type ResponeSuccess struct {
 
 //using for all error respone
 type ResponeError struct {
+	StatusCode  int    `json:"code"`
 	Success     bool   `json:"success"`
 	Description string `json:"description"`
 }
