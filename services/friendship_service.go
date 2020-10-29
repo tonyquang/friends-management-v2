@@ -13,6 +13,7 @@ import (
 
 type Services interface {
 	CreateNewUser(requestUser request.RequestCreateUser) *respone.ResponeError
+	CreateFriendsConnection(request request.RequestFriend) *respone.ResponeError
 }
 
 // Manager is the implementation of recurring service
@@ -43,6 +44,19 @@ func (m *Manager) CreateNewUser(requestUser request.RequestCreateUser) *respone.
 	password = utils.GetMD5Hash(password)
 
 	rs := repository.InsertNewUser(m.dbconn, db_models.Users{Email: emailAddress, Password: password})
+
+	return rs
+}
+
+func (m *Manager) CreateFriendsConnection(request request.RequestFriend) *respone.ResponeError {
+	firstUser := request.Friends[0]
+	secondUser := request.Friends[1]
+
+	if utils.ValidateEmail(firstUser) == false || utils.ValidateEmail(secondUser) == false {
+		return &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Email is Invalid!"}
+	}
+
+	rs := repository.InsertNewFriendConnection(m.dbconn, firstUser, secondUser)
 
 	return rs
 }

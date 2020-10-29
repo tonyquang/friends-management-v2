@@ -21,5 +21,9 @@ func Setup(db *gorm.DB) http.Handler {
 		CreateNewUserHandler(c, friendshipServices)
 	})
 
+	r.POST("/create-friend-connection", func(c *gin.Context) {
+		CreateNewFriendConnection(c, friendshipServices)
+	})
+
 	return r
 }

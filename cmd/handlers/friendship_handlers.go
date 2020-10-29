@@ -27,3 +27,21 @@ func CreateNewUserHandler(c *gin.Context, service services.Services) {
 
 	// utils.Respone(res, err, c)
 }
+
+func CreateNewFriendConnection(c *gin.Context, service services.Services) {
+	var friendReq request.RequestFriend
+
+	if err := c.BindJSON(&friendReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rs := service.CreateFriendsConnection(friendReq)
+
+	if rs == nil {
+		c.JSON(201, gin.H{"success": true})
+		return
+	}
+
+	c.JSON(rs.StatusCode, rs)
+}
