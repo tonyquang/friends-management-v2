@@ -52,6 +52,10 @@ func (m *Manager) CreateFriendsConnection(request request.RequestFriend) *respon
 	firstUser := request.Friends[0]
 	secondUser := request.Friends[1]
 
+	if firstUser == secondUser {
+		return &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Can not create connection yourselft"}
+	}
+
 	if utils.ValidateEmail(firstUser) == false || utils.ValidateEmail(secondUser) == false {
 		return &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Email is Invalid!"}
 	}

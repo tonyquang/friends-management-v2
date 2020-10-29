@@ -80,3 +80,80 @@ func TestCreateNewUser(t *testing.T) {
 	}
 	tx.RollbackTo("sp2")
 }
+
+func TestCreateFriendsConnection(t *testing.T) {
+	db := utils.CreateConnection()
+	testCases := []struct {
+		name            string
+		givenFriendship request.RequestFriend
+		expectedResult  *respone.ResponeError // Expected when recive nil value, and error when recvie not nil value
+	}{
+		{
+			name: "Create Friend Connection Success!",
+			givenFriendship: request.RequestFriend{
+				Friends: []string{
+					"quangtestcase01@gmail.com",
+					"quangtestcase02@gmail.com",
+				},
+			},
+			expectedResult: nil,
+		},
+		{
+			name: "Same user",
+			givenFriendship: request.RequestFriend{
+				Friends: []string{
+					"quangtestcase01@gmail.com",
+					"quangtestcase01@gmail.com",
+				},
+			},
+			expectedResult: &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Can not create connection yourselft"},
+		},
+		{
+			name: "Email Not Valid",
+			givenFriendship: request.RequestFriend{
+				Friends: []string{
+					"quangtestcase01gmail.com",
+					"quangtestcase01@gmail.com",
+				},
+			},
+			expectedResult: &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Email is Invalid!"},
+		},
+		{
+			name: "Friends Connection Exist",
+			givenFriendship: request.RequestFriend{
+				Friends: []string{
+					"quangtestcase01@gmail.com",
+					"quangtestcase02@gmail.com",
+				},
+			},
+			expectedResult: &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Connection is already"},
+		},
+		{
+			name: "User not exist",
+			givenFriendship: request.RequestFriend{
+				Friends: []string{
+					"wronguser01@gmail.com",
+					"quangtestcase02@gmail.com",
+				},
+			},
+			expectedResult: &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "User not exist!"},
+		},
+	}
+
+	tx := db.Begin()
+
+	assert.NoError(t, utils.LoadFixture(tx, "./datatest/create_friend_connection.sql"))
+
+	tx.SavePoint("sp2")
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			manager := NewManager(tx)
+
+			rs := manager.CreateFriendsConnection(tt.givenFriendship)
+
+			//Then
+			assert.Equal(t, tt.expectedResult, rs)
+		})
+	}
+	tx.RollbackTo("sp2")
+}

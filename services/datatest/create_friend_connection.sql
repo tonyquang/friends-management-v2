@@ -1,0 +1,2 @@
+INSERT INTO public.friendships(id, created_at, updated_at, deleted_at, first_user, second_user, is_friend, update_status)
+	VALUES (current_timestamp,current_timestamp, null, 'quangtestcasenek01@gmail.com', 'quangtestcasenek02@yahoo.com',true, false)
