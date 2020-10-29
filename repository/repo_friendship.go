@@ -10,6 +10,7 @@ import (
 
 var modelUser db_models.Users
 
+//Insert a new user to Users Table
 func InsertNewUser(dbconn *gorm.DB, user db_models.Users) *respone.ResponeError {
 	IsExist, err := CheckUserExist(dbconn, user.Email)
 	if err != nil {
@@ -17,7 +18,7 @@ func InsertNewUser(dbconn *gorm.DB, user db_models.Users) *respone.ResponeError 
 	}
 
 	if IsExist == true {
-		return &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "User is already in database"}
+		return &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "User is already!"}
 	}
 
 	rs := dbconn.Create(&user)
@@ -30,7 +31,7 @@ func InsertNewUser(dbconn *gorm.DB, user db_models.Users) *respone.ResponeError 
 
 //Check Email User Is Exist In Table User
 func CheckUserExist(dbconn *gorm.DB, emailAddress string) (bool, error) {
-	rs := dbconn.Where("email == ?", emailAddress).Find(&modelUser)
+	rs := dbconn.Where("email = ?", emailAddress).Find(&modelUser)
 
 	if rs.Error != nil {
 		return false, rs.Error

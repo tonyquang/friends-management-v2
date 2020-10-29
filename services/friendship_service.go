@@ -39,6 +39,8 @@ func (m *Manager) CreateNewUser(requestUser request.RequestCreateUser) *respone.
 		return &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Password is empty!"}
 	}
 
+	password = GetMD5Hash(password)
+
 	rs := repository.InsertNewUser(m.dbconn, db_models.Users{Email: emailAddress, Password: password})
 
 	return rs
