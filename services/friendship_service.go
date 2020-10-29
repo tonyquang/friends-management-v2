@@ -5,6 +5,7 @@ import (
 	"friends_management_v2/models/request"
 	"friends_management_v2/models/respone"
 	"friends_management_v2/repository"
+	"friends_management_v2/utils"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -31,7 +32,7 @@ func (m *Manager) CreateNewUser(requestUser request.RequestCreateUser) *respone.
 	emailAddress := requestUser.Email
 	password := requestUser.Password
 
-	if ValidateEmail(emailAddress) == false {
+	if utils.ValidateEmail(emailAddress) == false {
 		return &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Email is Invalid!"}
 	}
 
@@ -39,7 +40,7 @@ func (m *Manager) CreateNewUser(requestUser request.RequestCreateUser) *respone.
 		return &respone.ResponeError{Success: false, StatusCode: http.StatusBadRequest, Description: "Password is empty!"}
 	}
 
-	password = GetMD5Hash(password)
+	password = utils.GetMD5Hash(password)
 
 	rs := repository.InsertNewUser(m.dbconn, db_models.Users{Email: emailAddress, Password: password})
 
