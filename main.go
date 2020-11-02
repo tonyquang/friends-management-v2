@@ -1,7 +1,7 @@
 package main
 
 import (
-	"friends_management_v2/cmd/handlers"
+	handlers "friends_management_v2/controller"
 	"friends_management_v2/utils"
 	"log"
 	"net/http"

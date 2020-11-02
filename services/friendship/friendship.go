@@ -1,8 +1,13 @@
-package db_models
+package friendship
 
 import (
 	"gorm.io/gorm"
 )
+
+type ServiceFrienshipInput struct {
+	First_user  string
+	Second_user string
+}
 
 type Friendship struct {
 	gorm.Model
