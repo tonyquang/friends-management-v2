@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateNewFriendConnectionHandler(c *gin.Context, service friendship.FrienshipServices) {
+func AddFriendController(c *gin.Context, service friendship.FrienshipServices) {
 	var reqFriend RequestFriend
 
 	if err := c.BindJSON(&reqFriend); err != nil {
@@ -37,10 +37,10 @@ func CreateNewFriendConnectionHandler(c *gin.Context, service friendship.Friensh
 		return
 	}
 
-	c.JSON(201, rs)
+	c.JSON(400, gin.H{"error": rs.Error()})
 }
 
-func GetFriendsListAnUserHandler(c *gin.Context, service friendship.FrienshipServices) {
+func GetFriendsListAnUserController(c *gin.Context, service friendship.FrienshipServices) {
 	email := struct {
 		Mail string `json:"email"`
 	}{}
@@ -58,14 +58,14 @@ func GetFriendsListAnUserHandler(c *gin.Context, service friendship.FrienshipSer
 	rs, err := service.GetFriendListOfAnUser(user.Users{Email: email.Mail})
 
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(200, ToListFriendsStruct(rs))
 }
 
-func GetMutualFriendsList(c *gin.Context, service friendship.FrienshipServices) {
+func GetMutualFriendsListController(c *gin.Context, service friendship.FrienshipServices) {
 	reqFriend := RequestFriend{}
 
 	if err := c.BindJSON(&reqFriend); err != nil {
@@ -81,7 +81,7 @@ func GetMutualFriendsList(c *gin.Context, service friendship.FrienshipServices) 
 	firstUser := reqFriend.Friends[0]
 	secondUser := reqFriend.Friends[1]
 
-	if utils.ValidateEmail(firstUser) == false || utils.ValidateEmail(secondUser) {
+	if utils.ValidateEmail(firstUser) == false || utils.ValidateEmail(secondUser) == false {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email Invalid Format"})
 		return
 	}
@@ -89,11 +89,42 @@ func GetMutualFriendsList(c *gin.Context, service friendship.FrienshipServices) 
 	rs, err := service.GetMutualFriendsList(friendship.ServiceFrienshipInput{First_user: firstUser, Second_user: secondUser})
 
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(200, ToListFriendsStruct(rs))
+}
+
+func SubscribeUpdateController(c *gin.Context, service friendship.FrienshipServices) {
+	reqSubscribe := RequestSubscribe{}
+
+	if err := c.BindJSON(&reqSubscribe); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if reqSubscribe.Requestor == reqSubscribe.Target {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Request Invalid"})
+		return
+	}
+
+	firstUser := reqSubscribe.Requestor
+	secondUser := reqSubscribe.Target
+
+	if utils.ValidateEmail(firstUser) == false || utils.ValidateEmail(secondUser) == false {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email Invalid Format"})
+		return
+	}
+
+	rs := service.SubscribeUpdate(friendship.ServiceFrienshipInput{First_user: firstUser, Second_user: secondUser})
+
+	if rs != nil {
+		c.JSON(400, gin.H{"error": rs.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"success": true})
 }
 
 func ToListFriendsStruct(list []string) ResponeListFriends {

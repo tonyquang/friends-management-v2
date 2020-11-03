@@ -24,23 +24,27 @@ func Setup(db *gorm.DB) http.Handler {
 	r := gin.Default()
 
 	r.GET("/list-users", func(c *gin.Context) {
-		userController.GetListUsersHandler(c, userService)
+		userController.GetListUsersController(c, userService)
 	})
 
 	r.POST("/create-user", func(c *gin.Context) {
-		userController.CreateNewUserHandler(c, userService)
+		userController.CreateNewUserController(c, userService)
 	})
 
 	r.POST("/create-friend-connection", func(c *gin.Context) {
-		friendshipController.CreateNewFriendConnectionHandler(c, friendshipService)
+		friendshipController.AddFriendController(c, friendshipService)
 	})
 
 	r.POST("/get-list-friends", func(c *gin.Context) {
-		friendshipController.GetFriendsListAnUserHandler(c, friendshipService)
+		friendshipController.GetFriendsListAnUserController(c, friendshipService)
 	})
 
 	r.POST("/get-mutual-list-friends", func(c *gin.Context) {
-		friendshipController.GetMutualFriendsList(c, friendshipService)
+		friendshipController.GetMutualFriendsListController(c, friendshipService)
+	})
+
+	r.POST("/subscribe-update", func(c *gin.Context) {
+		friendshipController.SubscribeUpdateController(c, friendshipService)
 	})
 	return r
 }
