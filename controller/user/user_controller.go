@@ -22,6 +22,8 @@ func CreateNewUserHandler(c *gin.Context, service userService.UserService) {
 		return
 	}
 
+	
+
 	rs := service.CreateNewUser(user.Users{Email: ur.Email})
 
 	if rs == nil {
@@ -37,7 +39,7 @@ func GetListUsersHandler(c *gin.Context, service userService.UserService) {
 	rs, err := service.GetListUser()
 
 	if err != nil {
-		c.JSON(400, err)
+		c.JSON(400, err.Error())
 		return
 	}
 
