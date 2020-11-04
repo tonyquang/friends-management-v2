@@ -127,10 +127,92 @@ func SubscribeUpdateController(c *gin.Context, service friendship.FrienshipServi
 	c.JSON(200, gin.H{"success": true})
 }
 
+func BlockUpdateController(c *gin.Context, service friendship.FrienshipServices) {
+	reqSubscribe := RequestSubscribe{}
+
+	if err := c.BindJSON(&reqSubscribe); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if reqSubscribe.Requestor == reqSubscribe.Target {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Request Invalid"})
+		return
+	}
+
+	firstUser := reqSubscribe.Requestor
+	secondUser := reqSubscribe.Target
+
+	if utils.ValidateEmail(firstUser) == false || utils.ValidateEmail(secondUser) == false {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email Invalid Format"})
+		return
+	}
+
+	rs := service.BlockUpdate(friendship.ServiceFrienshipInput{First_user: firstUser, Second_user: secondUser})
+
+	if rs != nil {
+		c.JSON(400, gin.H{"error": rs.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"success": true})
+}
+
+func GetUsersRecvUpdateController(c *gin.Context, service friendship.FrienshipServices) {
+	reqRecvUpdate := RequestReciveUpdate{}
+
+	if err := c.BindJSON(&reqRecvUpdate); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if utils.ValidateEmail(reqRecvUpdate.Sender) == false {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email Invalid Format"})
+		return
+	}
+
+	mentioned := utils.ExtractMentionEmail(reqRecvUpdate.Text)
+
+	rs, err := service.GetUsersRecevieUpdate(reqRecvUpdate.Sender, mentioned)
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, ToUsersCanRecvUpdate(removeDuplicates(rs)))
+}
+
 func ToListFriendsStruct(list []string) ResponeListFriends {
 	listFriendsRespone := ResponeListFriends{}
 	listFriendsRespone.Count = uint64(len(list))
 	listFriendsRespone.Success = true
 	listFriendsRespone.Friends = append(listFriendsRespone.Friends, list...)
 	return listFriendsRespone
+}
+
+func ToUsersCanRecvUpdate(list []string) ResponeReciveUpdate {
+	listUsersRecvUpdate := ResponeReciveUpdate{}
+	listUsersRecvUpdate.Success = true
+	listUsersRecvUpdate.Recipients = append(listUsersRecvUpdate.Recipients, list...)
+	return listUsersRecvUpdate
+}
+
+func removeDuplicates(elements []string) []string {
+	// Use map to record duplicates as we find them.
+	encountered := map[string]bool{}
+	result := []string{}
+
+	for v := range elements {
+		if encountered[elements[v]] == true {
+			// Do not add duplicate.
+		} else {
+			// Record this element as an encountered element.
+			encountered[elements[v]] = true
+			// Append to result slice.
+			result = append(result, elements[v])
+		}
+	}
+	// Return the new slice.
+	return result
 }

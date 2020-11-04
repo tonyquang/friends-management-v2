@@ -26,4 +26,6 @@ type Friendship struct {
 // -Case 3:
 // 			+ equal 2 when SecondUser subscribe update to FirstUser
 //			+ equal -2 when SecondUser block update to FirstUser
-// -Case 4: equal 3 when both subscribe update togerther
+// -Case 4: + equal 3 when both subscribe update togerther
+// -Case 5: + equal -3 when FirstUser Block Update to SecondUser, but SecondUser still subscribe update to FirstUser
+// -Case 6: + equal -4 when SecondUser Block Update to FirstUser, but FirstUser still subscribe update to SecondUser

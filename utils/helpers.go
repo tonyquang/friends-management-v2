@@ -17,6 +17,17 @@ func ValidateEmail(mail string) bool {
 	return emailRegex.MatchString(mail)
 }
 
+func ExtractMentionEmail(text string) []string {
+	re := regexp.MustCompile(`@([a-zA-Z0-9]+)@([a-zA-Z0-9\.]+)\.([a-zA-Z0-9]+)`)
+	match := re.FindAllStringSubmatch(text, -1)
+	rs := []string{}
+
+	for i := 0; i < len(match); i++ {
+		rs = append(rs, (match[i][0])[1:])
+	}
+	return rs
+}
+
 func GetMD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
