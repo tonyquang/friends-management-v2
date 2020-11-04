@@ -10,7 +10,7 @@ import (
 )
 
 // cmt here
-func CreateNewUserHandler(c *gin.Context, service userService.UserService) {
+func CreateNewUserController(c *gin.Context, service userService.UserService) {
 	var ur RequestCreateUser
 	if err := c.BindJSON(&ur); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -22,8 +22,6 @@ func CreateNewUserHandler(c *gin.Context, service userService.UserService) {
 		return
 	}
 
-	
-
 	rs := service.CreateNewUser(user.Users{Email: ur.Email})
 
 	if rs == nil {
@@ -31,15 +29,16 @@ func CreateNewUserHandler(c *gin.Context, service userService.UserService) {
 		return
 	}
 
-	c.JSON(201, rs)
+	c.JSON(400, gin.H{"error": rs.Error()})
 }
 
-func GetListUsersHandler(c *gin.Context, service userService.UserService) {
+func GetListUsersController(c *gin.Context, service userService.UserService) {
 
 	rs, err := service.GetListUser()
 
 	if err != nil {
-		c.JSON(400, err.Error())
+		c.JSON(400, gin.H{"error": err.Error()})
+
 		return
 	}
 
