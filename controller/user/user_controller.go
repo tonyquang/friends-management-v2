@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// cmt here
 func CreateNewUserController(c *gin.Context, service userService.UserService) {
 	var ur RequestCreateUser
 	if err := c.BindJSON(&ur); err != nil {

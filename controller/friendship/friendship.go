@@ -1,6 +1,6 @@
 package friendship
 
-//Using for Retrieve List friends of an user or List common friends of two users
+// Using for Retrieve List friends of an user or List common friends of two users
 type ResponeListFriends struct {
 	Success bool     `json:"success"`
 	Friends []string `json:"friends"`
@@ -12,7 +12,7 @@ type ResponeReciveUpdate struct {
 	Recipients []string `json:"recipients"`
 }
 
-//Using for Request Add Friend and Retrieve the common friends
+// Using for Request Add Friend and Retrieve the common friends
 type RequestFriend struct {
 	Friends []string `json:"friends"`
 }

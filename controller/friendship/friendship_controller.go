@@ -1,15 +1,16 @@
 package friendship
 
 import (
+	"net/http"
+
 	"friends_management_v2/services/friendship"
 	"friends_management_v2/services/user"
 	"friends_management_v2/utils"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AddFriendController(c *gin.Context, service friendship.FrienshipServices) {
+func MakeFriendController(c *gin.Context, service friendship.FrienshipServices) {
 	var reqFriend RequestFriend
 
 	if err := c.BindJSON(&reqFriend); err != nil {
@@ -30,7 +31,7 @@ func AddFriendController(c *gin.Context, service friendship.FrienshipServices) {
 		return
 	}
 
-	rs := service.AddFriends(friendship.ServiceFrienshipInput{First_user: firstUser, Second_user: secondUser})
+	rs := service.MakeFriend(friendship.ServiceFrienshipInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if rs == nil {
 		c.JSON(201, gin.H{"success": true})
@@ -55,7 +56,7 @@ func GetFriendsListAnUserController(c *gin.Context, service friendship.Frienship
 		return
 	}
 
-	rs, err := service.GetFriendListOfAnUser(user.Users{Email: email.Mail})
+	rs, err := service.GetUserFriendList(user.Users{Email: email.Mail})
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -86,7 +87,7 @@ func GetMutualFriendsListController(c *gin.Context, service friendship.Frienship
 		return
 	}
 
-	rs, err := service.GetMutualFriendsList(friendship.ServiceFrienshipInput{First_user: firstUser, Second_user: secondUser})
+	rs, err := service.GetMutualFriendsList(friendship.ServiceFrienshipInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -117,7 +118,7 @@ func SubscribeUpdateController(c *gin.Context, service friendship.FrienshipServi
 		return
 	}
 
-	rs := service.SubscribeUpdate(friendship.ServiceFrienshipInput{First_user: firstUser, Second_user: secondUser})
+	rs := service.Subcribe(friendship.ServiceFrienshipInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if rs != nil {
 		c.JSON(400, gin.H{"error": rs.Error()})
@@ -148,7 +149,7 @@ func BlockUpdateController(c *gin.Context, service friendship.FrienshipServices)
 		return
 	}
 
-	rs := service.BlockUpdate(friendship.ServiceFrienshipInput{First_user: firstUser, Second_user: secondUser})
+	rs := service.Block(friendship.ServiceFrienshipInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if rs != nil {
 		c.JSON(400, gin.H{"error": rs.Error()})

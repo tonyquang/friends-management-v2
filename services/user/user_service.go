@@ -31,7 +31,7 @@ func (m *UserManager) CreateNewUser(userMail Users) error {
 	}
 
 	if IsExist == true {
-		return errors.New("User is already!")
+		return errors.New("User is already exists!")
 	}
 
 	rs := m.dbconn.Create(&userMail)
@@ -67,5 +67,4 @@ func CheckUserExist(dbconn *gorm.DB, emailAddress []string) (bool, error) {
 	} else {
 		return false, nil
 	}
-
 }

@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"friends_management_v2/migration"
+	migration "friends_management_v2/migrations"
 	friendshipService "friends_management_v2/services/friendship"
 	userService "friends_management_v2/services/user"
 	"net/http"
@@ -19,7 +19,7 @@ func Setup(db *gorm.DB) http.Handler {
 	friendshipService := friendshipService.NewFriendshipManager(db)
 	userService := userService.NewUserManager(db)
 	migration.InitMigration(db)
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
 
@@ -32,7 +32,7 @@ func Setup(db *gorm.DB) http.Handler {
 	})
 
 	r.POST("/add-friends", func(c *gin.Context) {
-		friendshipController.AddFriendController(c, friendshipService)
+		friendshipController.MakeFriendController(c, friendshipService)
 	})
 
 	r.POST("/get-list-friends", func(c *gin.Context) {

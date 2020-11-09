@@ -5,8 +5,10 @@ import (
 )
 
 type ServiceFrienshipInput struct {
-	First_user  string
-	Second_user string
+	// rename to requestEmail
+	RequestEmail string
+	// rename to targetEmail
+	TargetEmail string
 }
 
 type Friendship struct {

@@ -8,12 +8,12 @@ import (
 )
 
 type FrienshipServices interface {
-	AddFriends(input ServiceFrienshipInput) error
-	GetFriendListOfAnUser(user user.Users) ([]string, error)
+	MakeFriend(input ServiceFrienshipInput) error
+	GetUserFriendList(user user.Users) ([]string, error)
 	GetMutualFriendsList(input ServiceFrienshipInput) ([]string, error)
-	SubscribeUpdate(input ServiceFrienshipInput) error
-	BlockUpdate(input ServiceFrienshipInput) error
-	GetUsersRecevieUpdate(sender string, metion []string) ([]string, error)
+	Subcribe(input ServiceFrienshipInput) error
+	Block(input ServiceFrienshipInput) error
+	GetUsersRecevieUpdate(sender string, mentionedUsers []string) ([]string, error)
 }
 
 // FriendshipManager is the implementation of recurring service
@@ -28,9 +28,9 @@ func NewFriendshipManager(dbconn *gorm.DB) *FriendshipManager {
 	}
 }
 
-func (m *FriendshipManager) AddFriends(input ServiceFrienshipInput) error {
-	firstUser := input.First_user
-	secondUser := input.Second_user
+func (m *FriendshipManager) MakeFriend(input ServiceFrienshipInput) error {
+	firstUser := input.RequestEmail
+	secondUser := input.TargetEmail
 
 	//Check Friends Connection Exist
 	friendship, err := CheckFriendship(m.dbconn, firstUser, secondUser)
@@ -48,7 +48,7 @@ func (m *FriendshipManager) AddFriends(input ServiceFrienshipInput) error {
 			return errors.New("Blocked Add Friend")
 		}
 
-		rs := m.dbconn.Model(&Friendship{}).Where("first_user IN ? AND second_user IN ?", []string{firstUser, secondUser}, []string{firstUser, secondUser}).Update("is_friend", true)
+		rs := m.dbconn.Model(&Friendship{}).Where("RequestEmail IN ? AND TargetEmail IN ?", []string{firstUser, secondUser}, []string{firstUser, secondUser}).Update("is_friend", true)
 		if rs.Error != nil {
 			return err
 		}
@@ -76,8 +76,8 @@ func (m *FriendshipManager) AddFriends(input ServiceFrienshipInput) error {
 	return nil
 }
 
-//GetFriendListOfAnUser
-func (m *FriendshipManager) GetFriendListOfAnUser(ur user.Users) ([]string, error) {
+//GetUserFriendList
+func (m *FriendshipManager) GetUserFriendList(ur user.Users) ([]string, error) {
 
 	IsExist, err := user.CheckUserExist(m.dbconn, []string{ur.Email})
 
@@ -89,7 +89,7 @@ func (m *FriendshipManager) GetFriendListOfAnUser(ur user.Users) ([]string, erro
 		return nil, errors.New("User Not Exist")
 	}
 
-	stm := `SELECT f1.second_user friend FROM friendships as f1 WHERE f1.first_user = ? UNION SELECT f2.first_user friend FROM friendships as f2 WHERE f2.second_user = ?`
+	stm := `SELECT f1.TargetEmail friend FROM friendships as f1 WHERE f1.RequestEmail = ? UNION SELECT f2.RequestEmail friend FROM friendships as f2 WHERE f2.TargetEmail = ?`
 
 	listFriend := []string{}
 
@@ -105,7 +105,7 @@ func (m *FriendshipManager) GetFriendListOfAnUser(ur user.Users) ([]string, erro
 //GetMutualFriendsList
 func (m *FriendshipManager) GetMutualFriendsList(input ServiceFrienshipInput) ([]string, error) {
 
-	listUsers := []string{input.First_user, input.Second_user}
+	listUsers := []string{input.RequestEmail, input.TargetEmail}
 
 	IsExist, err := user.CheckUserExist(m.dbconn, listUsers)
 
@@ -119,20 +119,20 @@ func (m *FriendshipManager) GetMutualFriendsList(input ServiceFrienshipInput) ([
 
 	stm := `SELECT UserAFriends.friend FROM
 	(
-	 SELECT f1.second_user friend FROM friendships as f1 WHERE f1.first_user = ?
+	 SELECT f1.TargetEmail friend FROM friendships as f1 WHERE f1.RequestEmail = ?
 		UNION 
-	 SELECT f2.first_user friend FROM friendships as f2 WHERE f2.second_user = ?
+	 SELECT f2.RequestEmail friend FROM friendships as f2 WHERE f2.TargetEmail = ?
 	) AS UserAFriends
 	JOIN  
 	(
-	  SELECT f1.second_user friend FROM friendships as f1 WHERE f1.first_user = ?
+	  SELECT f1.TargetEmail friend FROM friendships as f1 WHERE f1.RequestEmail = ?
 		UNION 
-	  SELECT f2.first_user friend FROM friendships as f2 WHERE f2.second_user = ?
+	  SELECT f2.RequestEmail friend FROM friendships as f2 WHERE f2.TargetEmail = ?
 	) AS UserBFriends 
 	ON  UserAFriends.friend = UserBFriends.friend`
 
 	listMutualFriends := []string{}
-	rs := m.dbconn.Raw(stm, input.First_user, input.First_user, input.Second_user, input.Second_user).Scan(&listMutualFriends)
+	rs := m.dbconn.Raw(stm, input.RequestEmail, input.RequestEmail, input.TargetEmail, input.TargetEmail).Scan(&listMutualFriends)
 
 	if rs.Error != nil {
 		return nil, rs.Error
@@ -141,9 +141,9 @@ func (m *FriendshipManager) GetMutualFriendsList(input ServiceFrienshipInput) ([
 	return listMutualFriends, nil //ffdf
 }
 
-//SubscribeUpdate Update Subscribe
-func (m *FriendshipManager) SubscribeUpdate(input ServiceFrienshipInput) error {
-	listUsers := []string{input.First_user, input.Second_user}
+//Subcribe Update Subscribe
+func (m *FriendshipManager) Subcribe(input ServiceFrienshipInput) error {
+	listUsers := []string{input.RequestEmail, input.TargetEmail}
 
 	IsExist, err := user.CheckUserExist(m.dbconn, listUsers)
 
@@ -155,7 +155,7 @@ func (m *FriendshipManager) SubscribeUpdate(input ServiceFrienshipInput) error {
 		return errors.New("User Not Exist")
 	}
 
-	friendship, err := CheckFriendship(m.dbconn, input.First_user, input.Second_user)
+	friendship, err := CheckFriendship(m.dbconn, input.RequestEmail, input.TargetEmail)
 	if err != nil {
 		return err
 	}
@@ -167,11 +167,11 @@ func (m *FriendshipManager) SubscribeUpdate(input ServiceFrienshipInput) error {
 			case 
 				when f.update_status = 0 then 
 					case 
-						when f.first_user = @fuser then 1 else 2 
+						when f.RequestEmail = @fuser then 1 else 2 
 					end 
 				when f.update_status > 0 then
 					case
-						when f.first_user = @fuser then
+						when f.RequestEmail = @fuser then
 							case
 								when f.update_status <> 1 then 3 else 1
 							end
@@ -182,7 +182,7 @@ func (m *FriendshipManager) SubscribeUpdate(input ServiceFrienshipInput) error {
 					end
 				else
 					case
-						when f.first_user = @fuser then
+						when f.RequestEmail = @fuser then
 							case
 								when f.update_status = -1 then 1 else 3
 							end
@@ -192,16 +192,16 @@ func (m *FriendshipManager) SubscribeUpdate(input ServiceFrienshipInput) error {
 							end
 					end
 			END AS update_status_code 
-		from friendships as f where f.first_user IN (@fuser,@suser) AND f.second_user IN (@fuser,@suser)) 
-		WHERE f0.first_user IN (@fuser,@suser) AND f0.second_user IN (@fuser,@suser)`
+		from friendships as f where f.RequestEmail IN (@fuser,@suser) AND f.TargetEmail IN (@fuser,@suser)) 
+		WHERE f0.RequestEmail IN (@fuser,@suser) AND f0.TargetEmail IN (@fuser,@suser)`
 
-		rs := m.dbconn.Exec(stm, map[string]interface{}{"fuser": input.First_user, "suser": input.Second_user})
+		rs := m.dbconn.Exec(stm, map[string]interface{}{"fuser": input.RequestEmail, "suser": input.TargetEmail})
 
 		if rs.Error != nil {
 			return err
 		}
 	} else {
-		rs1 := m.dbconn.Create(&Friendship{FirstUser: input.First_user, SecondUser: input.Second_user, IsFriend: false, UpdateStatus: 1})
+		rs1 := m.dbconn.Create(&Friendship{FirstUser: input.RequestEmail, SecondUser: input.TargetEmail, IsFriend: false, UpdateStatus: 1})
 		if rs1.Error != nil {
 			return err
 		}
@@ -209,8 +209,8 @@ func (m *FriendshipManager) SubscribeUpdate(input ServiceFrienshipInput) error {
 	return nil
 }
 
-func (m *FriendshipManager) BlockUpdate(input ServiceFrienshipInput) error {
-	listUsers := []string{input.First_user, input.Second_user}
+func (m *FriendshipManager) Block(input ServiceFrienshipInput) error {
+	listUsers := []string{input.RequestEmail, input.TargetEmail}
 
 	IsExist, err := user.CheckUserExist(m.dbconn, listUsers)
 
@@ -222,7 +222,7 @@ func (m *FriendshipManager) BlockUpdate(input ServiceFrienshipInput) error {
 		return errors.New("User Not Exist")
 	}
 
-	friendship, err := CheckFriendship(m.dbconn, input.First_user, input.Second_user)
+	friendship, err := CheckFriendship(m.dbconn, input.RequestEmail, input.TargetEmail)
 	if err != nil {
 		return err
 	}
@@ -233,15 +233,15 @@ func (m *FriendshipManager) BlockUpdate(input ServiceFrienshipInput) error {
 			case 
 				when f.update_status = 0 then 
 					case 
-						when f.first_user = @fuser then -1 else -2 
+						when f.RequestEmail = @fuser then -1 else -2 
 					end 
 				when f.update_status = 3 then 
 					case
-						when f.first_user = @fuser then -3 else -4	
+						when f.RequestEmail = @fuser then -3 else -4	
 					end
 				when f.update_status < 0 then
 					case
-						when f.first_user = @fuser then
+						when f.RequestEmail = @fuser then
 							case
 								when f.update_status <> -1 then 0 else -1
 							end
@@ -252,7 +252,7 @@ func (m *FriendshipManager) BlockUpdate(input ServiceFrienshipInput) error {
 					end
 				else
 					case
-						when f.first_user = @fuser then
+						when f.RequestEmail = @fuser then
 							case
 								when f.update_status <> 1 then -3 else -1
 							end
@@ -262,17 +262,17 @@ func (m *FriendshipManager) BlockUpdate(input ServiceFrienshipInput) error {
 							end
 					end
 			END AS update_status_code 
-		from friendships as f where f.first_user IN (@fuser,@suser) AND f.second_user IN (@fuser,@suser)) 
-		WHERE f0.first_user IN (@fuser,@suser) AND f0.second_user IN (@fuser,@suser)`
+		from friendships as f where f.RequestEmail IN (@fuser,@suser) AND f.TargetEmail IN (@fuser,@suser)) 
+		WHERE f0.RequestEmail IN (@fuser,@suser) AND f0.TargetEmail IN (@fuser,@suser)`
 
-		rs := m.dbconn.Exec(stm, map[string]interface{}{"fuser": input.First_user, "suser": input.Second_user})
+		rs := m.dbconn.Exec(stm, map[string]interface{}{"fuser": input.RequestEmail, "suser": input.TargetEmail})
 
 		if rs.Error != nil {
 			return err
 		}
 	} else {
 
-		rs1 := m.dbconn.Create(&Friendship{FirstUser: input.First_user, SecondUser: input.Second_user, IsFriend: false, UpdateStatus: -1})
+		rs1 := m.dbconn.Create(&Friendship{FirstUser: input.RequestEmail, SecondUser: input.TargetEmail, IsFriend: false, UpdateStatus: -1})
 		if rs1.Error != nil {
 			return err
 		}
@@ -294,20 +294,20 @@ func (m *FriendshipManager) GetUsersRecevieUpdate(sender string, metion []string
 	}
 
 	stm := `select
-				f1.second_user friend
+				f1.TargetEmail friend
 			from
 				friendships as f1
 			where
-				f1.first_user = ?
+				f1.RequestEmail = ?
 				and (f1.update_status > 0 OR f1.update_status = -3)  
 				and (f1.is_friend = true or f1.update_status = 2 or f1.update_status = 3)
 			union
 			select
-				f2.first_user friend
+				f2.RequestEmail friend
 			from
 				friendships as f2
 			where
-				f2.second_user = ?
+				f2.TargetEmail = ?
 				and (f2.update_status > 0 OR f2.update_status = -4)  
 				and (f2.is_friend = true or f2.update_status = 1 or f2.update_status = 3)`
 
@@ -335,7 +335,7 @@ func (m *FriendshipManager) GetUsersRecevieUpdate(sender string, metion []string
 //Check Connection Between Two User
 func CheckFriendship(dbconn *gorm.DB, firstUser, secondUser string) (*Friendship, error) {
 	friendship := Friendship{}
-	rs := dbconn.Where("first_user IN ? AND second_user IN ?", []string{firstUser, secondUser}, []string{firstUser, secondUser}).Find(&Friendship{}).Scan(&friendship)
+	rs := dbconn.Where("RequestEmail IN ? AND TargetEmail IN ?", []string{firstUser, secondUser}, []string{firstUser, secondUser}).Find(&Friendship{}).Scan(&friendship)
 	if rs.Error != nil {
 		return nil, rs.Error
 	}
