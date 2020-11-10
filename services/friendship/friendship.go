@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type ServiceFrienshipInput struct {
+type FrienshipServiceInput struct {
 	// rename to requestEmail
 	RequestEmail string
 	// rename to targetEmail

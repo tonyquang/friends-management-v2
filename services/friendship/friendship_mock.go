@@ -10,7 +10,7 @@ type FrienshipMockService struct {
 	mock.Mock
 }
 
-func (_m *FrienshipMockService) MakeFriend(input ServiceFrienshipInput) error {
+func (_m *FrienshipMockService) MakeFriend(input FrienshipServiceInput) error {
 	args := _m.Called(input)
 	output := args.Error(0)
 	return output
@@ -20,17 +20,17 @@ func (_m *FrienshipMockService) GetUserFriendList(ur user.Users) ([]string, erro
 	args := _m.Called(ur)
 	return args.Get(0).([]string), args.Error(1)
 }
-func (_m *FrienshipMockService) GetMutualFriendsList(input ServiceFrienshipInput) ([]string, error) {
+func (_m *FrienshipMockService) GetMutualFriendsList(input FrienshipServiceInput) ([]string, error) {
 	args := _m.Called(input)
 	return args.Get(0).([]string), args.Error(1)
 }
-func (_m *FrienshipMockService) Subcribe(input ServiceFrienshipInput) error {
+func (_m *FrienshipMockService) Subcribe(input FrienshipServiceInput) error {
 	args := _m.Called(input)
-	return args.Error(1)
+	return args.Error(0)
 }
-func (_m *FrienshipMockService) Block(input ServiceFrienshipInput) error {
+func (_m *FrienshipMockService) Block(input FrienshipServiceInput) error {
 	args := _m.Called(input)
-	return args.Error(1)
+	return args.Error(0)
 }
 func (_m *FrienshipMockService) GetUsersRecevieUpdate(sender string, mentionedUsers []string) ([]string, error) {
 	args := _m.Called(sender, mentionedUsers)

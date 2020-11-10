@@ -14,7 +14,7 @@ func MakeFriendController(c *gin.Context, service friendship.FrienshipServices) 
 	var reqFriend RequestFriend
 
 	if err := c.BindJSON(&reqFriend); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "BindJson Error, cause body request invalid"})
 		return
 	}
 
@@ -31,7 +31,7 @@ func MakeFriendController(c *gin.Context, service friendship.FrienshipServices) 
 		return
 	}
 
-	rs := service.MakeFriend(friendship.ServiceFrienshipInput{RequestEmail: firstUser, TargetEmail: secondUser})
+	rs := service.MakeFriend(friendship.FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if rs == nil {
 		c.JSON(201, gin.H{"success": true})
@@ -41,13 +41,13 @@ func MakeFriendController(c *gin.Context, service friendship.FrienshipServices) 
 	c.JSON(400, gin.H{"error": rs.Error()})
 }
 
-func GetFriendsListAnUserController(c *gin.Context, service friendship.FrienshipServices) {
+func GetFriendList(c *gin.Context, service friendship.FrienshipServices) {
 	email := struct {
 		Mail string `json:"email"`
 	}{}
 
 	if err := c.BindJSON(&email); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "BindJson Error, cause body request invalid"})
 		return
 	}
 
@@ -66,11 +66,11 @@ func GetFriendsListAnUserController(c *gin.Context, service friendship.Frienship
 	c.JSON(200, ToListFriendsStruct(rs))
 }
 
-func GetMutualFriendsListController(c *gin.Context, service friendship.FrienshipServices) {
+func GetMutualFriendsController(c *gin.Context, service friendship.FrienshipServices) {
 	reqFriend := RequestFriend{}
 
 	if err := c.BindJSON(&reqFriend); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "BindJson Error, cause body request invalid"})
 		return
 	}
 
@@ -87,7 +87,7 @@ func GetMutualFriendsListController(c *gin.Context, service friendship.Frienship
 		return
 	}
 
-	rs, err := service.GetMutualFriendsList(friendship.ServiceFrienshipInput{RequestEmail: firstUser, TargetEmail: secondUser})
+	rs, err := service.GetMutualFriendsList(friendship.FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -97,11 +97,11 @@ func GetMutualFriendsListController(c *gin.Context, service friendship.Frienship
 	c.JSON(200, ToListFriendsStruct(rs))
 }
 
-func SubscribeUpdateController(c *gin.Context, service friendship.FrienshipServices) {
-	reqSubscribe := RequestSubscribe{}
+func SubscribeController(c *gin.Context, service friendship.FrienshipServices) {
+	reqSubscribe := RequestUpdate{}
 
 	if err := c.BindJSON(&reqSubscribe); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "BindJson Error, cause body request invalid"})
 		return
 	}
 
@@ -118,7 +118,7 @@ func SubscribeUpdateController(c *gin.Context, service friendship.FrienshipServi
 		return
 	}
 
-	rs := service.Subcribe(friendship.ServiceFrienshipInput{RequestEmail: firstUser, TargetEmail: secondUser})
+	rs := service.Subcribe(friendship.FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if rs != nil {
 		c.JSON(400, gin.H{"error": rs.Error()})
@@ -128,11 +128,11 @@ func SubscribeUpdateController(c *gin.Context, service friendship.FrienshipServi
 	c.JSON(200, gin.H{"success": true})
 }
 
-func BlockUpdateController(c *gin.Context, service friendship.FrienshipServices) {
-	reqSubscribe := RequestSubscribe{}
+func BlockController(c *gin.Context, service friendship.FrienshipServices) {
+	reqSubscribe := RequestUpdate{}
 
 	if err := c.BindJSON(&reqSubscribe); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "BindJson Error, cause body request invalid"})
 		return
 	}
 
@@ -149,21 +149,21 @@ func BlockUpdateController(c *gin.Context, service friendship.FrienshipServices)
 		return
 	}
 
-	rs := service.Block(friendship.ServiceFrienshipInput{RequestEmail: firstUser, TargetEmail: secondUser})
+	rs := service.Block(friendship.FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if rs != nil {
 		c.JSON(400, gin.H{"error": rs.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{"success": true})
+	c.JSON(201, gin.H{"success": true})
 }
 
 func GetUsersRecvUpdateController(c *gin.Context, service friendship.FrienshipServices) {
 	reqRecvUpdate := RequestReciveUpdate{}
 
 	if err := c.BindJSON(&reqRecvUpdate); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "BindJson Error, cause body request invalid"})
 		return
 	}
 

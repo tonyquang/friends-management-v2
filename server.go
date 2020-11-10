@@ -5,13 +5,13 @@ import (
 	"friends_management_v2/utils"
 	"log"
 	"net/http"
-	"os"
 )
-	
+
 func main() {
 	db := utils.CreateConnection()
 	r := handlers.Setup(db)
-
+	// var port string = os.Getenv("PORT")
+	// fmt.Println(port)
 	log.Println("Server started on: http://localhost:3000")
-	http.ListenAndServe(os.Getenv("PORT"), r)
+	http.ListenAndServe(":3000", r)
 }

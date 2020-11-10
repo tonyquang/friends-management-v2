@@ -12,7 +12,7 @@ import (
 func CreateNewUserController(c *gin.Context, service userService.UserService) {
 	var ur RequestCreateUser
 	if err := c.BindJSON(&ur); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "BindJson Error, cause body request invalid"})
 		return
 	}
 
@@ -37,7 +37,6 @@ func GetListUsersController(c *gin.Context, service userService.UserService) {
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
-
 		return
 	}
 

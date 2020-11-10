@@ -14,16 +14,16 @@ type ResponeReciveUpdate struct {
 
 // Using for Request Add Friend and Retrieve the common friends
 type RequestFriend struct {
-	Friends []string `json:"friends"`
+	Friends []string `json:"friends" binding:"required"`
 }
 
 type RequestReciveUpdate struct {
-	Sender string `json:"sender"`
-	Text   string `json:"text"`
+	Sender string `json:"sender" binding:"required"`
+	Text   string `json:"text" binding:"required"`
 }
 
 //Using for request Subscribe or Block Update
-type RequestSubscribe struct {
-	Requestor string `json:"requestor"`
-	Target    string `json:"target"`
+type RequestUpdate struct {
+	Requestor string `json:"requestor" binding:"required"`
+	Target    string `json:"target" binding:"required"`
 }
