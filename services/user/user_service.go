@@ -11,6 +11,9 @@ type UserService interface {
 	GetListUser() ([]string, error)
 }
 
+type UserRepo interface {
+}
+
 type UserManager struct {
 	dbconn *gorm.DB
 }
@@ -25,7 +28,7 @@ func (m *UserManager) CreateNewUser(userMail Users) error {
 
 	emailAddress := userMail.Email
 
-	IsExist, err := CheckUserExist(m.dbconn, []string{emailAddress})
+	IsExist, err := m.CheckUserExist([]string{emailAddress})
 	if err != nil {
 		return err
 	}
@@ -53,11 +56,11 @@ func (m *UserManager) GetListUser() ([]string, error) {
 	return listUser, nil
 }
 
-func CheckUserExist(dbconn *gorm.DB, emailAddress []string) (bool, error) {
+func (m *UserManager) CheckUserExist(emailAddress []string) (bool, error) {
 
 	var count int
 
-	rs := dbconn.Select("COUNT(*)").Where("email IN ?", emailAddress).Find(&Users{}).Scan(&count)
+	rs := m.dbconn.Select("COUNT(*)").Where("email IN ?", emailAddress).Find(&Users{}).Scan(&count)
 
 	if rs.Error != nil {
 		return false, rs.Error

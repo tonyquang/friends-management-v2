@@ -19,42 +19,57 @@ func TestCreateNewUserController(t *testing.T) {
 	// Given
 	testCase := []struct {
 		name              string
-		inputRequest      RequestCreateUser
+		inputRequest      *RequestCreateUser
 		expectedErrorBody string
 	}{
 		{
 			name:              "Create New User Success",
-			inputRequest:      RequestCreateUser{"abc@gmail.com"},
+			inputRequest:      &RequestCreateUser{"abc@gmail.com"},
 			expectedErrorBody: "",
 		},
 		{
 			name:              "Create New User Fail",
-			inputRequest:      RequestCreateUser{"abc@gmail.com"},
+			inputRequest:      &RequestCreateUser{"abc@gmail.com"},
 			expectedErrorBody: "Any error",
 		},
 		{
 			name:              "Invalid User Email",
-			inputRequest:      RequestCreateUser{"abc"},
+			inputRequest:      &RequestCreateUser{"abc"},
 			expectedErrorBody: "Invalid Email",
+		},
+		{
+			name:              "Invalid User Email",
+			inputRequest:      &RequestCreateUser{"abc"},
+			expectedErrorBody: "Invalid Email",
+		},
+		{
+			name:              "Empty request body",
+			expectedErrorBody: "BindJson Error, cause body request invalid",
 		},
 	}
 
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
 			userMock := new(user.UserMockService)
-			if tc.name == "Create New User Fail" {
-				userMock.On("CreateNewUser", user.Users{Email: tc.inputRequest.Email}).Return(errors.New("Any error"))
-			} else {
-				userMock.On("CreateNewUser", user.Users{Email: tc.inputRequest.Email}).Return(nil)
+
+			if tc.inputRequest != nil {
+				if tc.name == "Create New User Fail" {
+					userMock.On("CreateNewUser", user.Users{Email: tc.inputRequest.Email}).Return(errors.New("Any error"))
+				} else {
+					userMock.On("CreateNewUser", user.Users{Email: tc.inputRequest.Email}).Return(nil)
+				}
 			}
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 
-			value := map[string]string{"email": tc.inputRequest.Email}
-			jsonValue, _ := json.Marshal(value)
-			c.Request, _ = http.NewRequest("POST", "/create-user", bytes.NewBuffer(jsonValue))
-
+			if tc.inputRequest != nil {
+				value := map[string]string{"email": tc.inputRequest.Email}
+				jsonValue, _ := json.Marshal(value)
+				c.Request, _ = http.NewRequest("POST", "/create-user", bytes.NewBuffer(jsonValue))
+			} else {
+				c.Request, _ = http.NewRequest("POST", "/create-user", nil)
+			}
 			// When
 			CreateNewUserController(c, userMock)
 
@@ -64,6 +79,7 @@ func TestCreateNewUserController(t *testing.T) {
 			json.Unmarshal(body, &actualResult)
 
 			if val1, oke1 := actualResult["success"]; oke1 {
+				assert.Equal(t, 201, w.Result().StatusCode)
 				assert.Equal(t, val1, true)
 			} else if val2, oke2 := actualResult["error"]; oke2 {
 				assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
@@ -74,62 +90,52 @@ func TestCreateNewUserController(t *testing.T) {
 
 }
 
-// func TestGetListUsersController(t *testing.T) {
-// 	// Given
+func TestGetListUsersController(t *testing.T) {
+	//Given
+	testCase := []struct {
+		name                string
+		mockRespone         []string
+		mockError           error
+		expectedErrorBody   string
+		expectedSuccessBody string
+	}{
+		{
+			name: "Get List User Success",
+			mockRespone: []string{
+				"1@gmail.com",
+				"2@gmail.com",
+				"3@gmail.com",
+				"4@gmail.com",
+			},
+			expectedSuccessBody: `{"list_users":["1@gmail.com","2@gmail.com","3@gmail.com","4@gmail.com"],"count":4}`,
+		},
+		{
+			name:              "Get List User Fail",
+			mockError:         errors.New("Any error"),
+			expectedErrorBody: `{"error":"Any error"}`,
+		},
+	}
 
-// 	testCase := []struct {
-// 		name                string
-// 		expectedErrorBody   string
-// 		expectedSuccessBody ResponeListUser
-// 	}{
-// 		{
-// 			name: "Get List User Success",
-// 			expectedSuccessBody: ResponeListUser{
-// 				Count: 3,
-// 				ListUsers: []string{
-// 					"abc@gmail.com",
-// 					"xyz@gmail.com",
-// 					"tonyquang@gmail.com",
-// 				},
-// 			},
-// 		},
-// 		{
-// 			name:              "Get List User Fail",
-// 			expectedErrorBody: "Any error",
-// 		},
-// 	}
+	for _, tc := range testCase {
+		t.Run(tc.name, func(t *testing.T) {
+			mockUser := new(user.UserMockService)
+			mockUser.On("GetListUser").Return(tc.mockRespone, tc.mockError)
 
-// 	for _, tc := range testCase {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			userMock := new(user.UserMockService)
-// 			if tc.name == "Get List User Success" {
-// 				userMock.On("GetListUser").Return(tc.expectedSuccessBody.ListUsers, nil)
-// 			} else {
-// 				userMock.On("GetListUser").Return(nil, errors.New(tc.expectedErrorBody))
-// 			}
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
 
-// 			w := httptest.NewRecorder()
-// 			c, _ := gin.CreateTestContext(w)
-// 			c.Request, _ = http.NewRequest("GET", "/list-users", nil)
+			GetListUsersController(c, mockUser)
 
-// 			// When
-// 			GetListUsersController(c, userMock)
+			body, _ := ioutil.ReadAll(w.Result().Body)
+			actualResult := string(body)
 
-// 			// Then
-// 			var actualResult map[string]interface{}
-// 			body, _ := ioutil.ReadAll(w.Result().Body)
-// 			json.Unmarshal(body, &actualResult)
-// 			fmt.Println(tc.name)
-// 			fmt.Println(actualResult)
-// 			if val1, oke1 := actualResult["error"]; oke1 {
-// 				assert.Equal(t, val1, tc.expectedErrorBody)
-// 			} else {
-// 				_, oke2 := actualResult["list_users"]
-// 				_, oke3 := actualResult["count"]
-// 				assert.Equal(t, oke2, true)
-// 				assert.Equal(t, oke3, true)
-// 				assert.Equal(t, 200, w.Result().StatusCode)
-// 			}
-// 		})
-// 	}
-// }
+			if tc.name == "Get List User Success" {
+				assert.Equal(t, 200, w.Result().StatusCode)
+				assert.Equal(t, tc.expectedSuccessBody, actualResult)
+			} else {
+				assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+				assert.Equal(t, tc.expectedErrorBody, actualResult)
+			}
+		})
+	}
+}
