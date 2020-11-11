@@ -43,7 +43,7 @@ func MakeFriendController(c *gin.Context, service friendship.FrienshipServices) 
 
 func GetFriendList(c *gin.Context, service friendship.FrienshipServices) {
 	email := struct {
-		Mail string `json:"email"`
+		Mail string `json:"email" binding:"required"`
 	}{}
 
 	if err := c.BindJSON(&email); err != nil {
@@ -125,7 +125,7 @@ func SubscribeController(c *gin.Context, service friendship.FrienshipServices) {
 		return
 	}
 
-	c.JSON(200, gin.H{"success": true})
+	c.JSON(201, gin.H{"success": true})
 }
 
 func BlockController(c *gin.Context, service friendship.FrienshipServices) {

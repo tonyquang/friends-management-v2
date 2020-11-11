@@ -11,6 +11,7 @@ import (
 
 	"friends_management_v2/services/friendship"
 	"friends_management_v2/services/user"
+	"friends_management_v2/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -44,9 +45,19 @@ func TestMakeFriendController(t *testing.T) {
 			expectedErrorBody: "Any Error",
 		},
 		{
-			name: "Request Invalid",
+			name: "Not enough parameters",
 			input: RequestFriend{
 				Friends: []string{
+					"quangbui1404@gmail.com",
+				},
+			},
+			expectedErrorBody: "Request Invalid",
+		},
+		{
+			name: "Same user",
+			input: RequestFriend{
+				Friends: []string{
+					"quangbui1404@gmail.com",
 					"quangbui1404@gmail.com",
 				},
 			},
@@ -62,20 +73,26 @@ func TestMakeFriendController(t *testing.T) {
 			},
 			expectedErrorBody: "Email Invalid Format",
 		},
+		{
+			name:              "Empty request body",
+			expectedErrorBody: "BindJson Error, cause body request invalid",
+		},
 	}
 
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
 
 			frienshipMork := new(friendship.FrienshipMockService)
-			if tc.name != "Make Friend Fail" {
-				if len(tc.input.Friends) == 2 {
-					frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(nil)
+			if tc.input.Friends != nil {
+				if tc.name != "Make Friend Fail" {
+					if len(tc.input.Friends) == 2 {
+						frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(nil)
+					} else {
+						frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0]}).Return(nil)
+					}
 				} else {
-					frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0]}).Return(nil)
+					frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(errors.New("Any Error"))
 				}
-			} else {
-				frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(errors.New("Any Error"))
 			}
 
 			w := httptest.NewRecorder()
@@ -134,9 +151,12 @@ func TestGetFriendList(t *testing.T) {
 		{
 			name:              "Invalid Email",
 			input:             user.Users{Email: "abc"},
-			mockError:         errors.New("Email Invalid Format"),
 			mockRespone:       nil,
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
+		},
+		{
+			name:              "Empty request body",
+			expectedErrorBody: `{"error":"BindJson Error, cause body request invalid"}`,
 		},
 	}
 
@@ -204,7 +224,6 @@ func TestGetMutualFriendsController(t *testing.T) {
 					"target@gmail.com",
 				},
 			},
-			mockRespone:       nil,
 			mockError:         errors.New("Any error"),
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
@@ -216,8 +235,6 @@ func TestGetMutualFriendsController(t *testing.T) {
 					"target@gmail.com",
 				},
 			},
-			mockRespone:       nil,
-			mockError:         errors.New("Email Invalid Format"),
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
 		},
 		{
@@ -228,8 +245,6 @@ func TestGetMutualFriendsController(t *testing.T) {
 					"target@gmail.com",
 				},
 			},
-			mockRespone:       nil,
-			mockError:         errors.New("Request Invalid"),
 			expectedErrorBody: `{"error":"Request Invalid"}`,
 		},
 		{
@@ -239,8 +254,10 @@ func TestGetMutualFriendsController(t *testing.T) {
 					"requestor@gmail.com",
 				},
 			},
-			mockRespone:       nil,
-			mockError:         errors.New("Request Invalid"),
+			expectedErrorBody: `{"error":"Request Invalid"}`,
+		},
+		{
+			name:              "Empty request body",
 			expectedErrorBody: `{"error":"BindJson Error, cause body request invalid"}`,
 		},
 	}
@@ -248,16 +265,18 @@ func TestGetMutualFriendsController(t *testing.T) {
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
-			if tc.name == "Not enough parameters" {
-				mockFriendship.On("GetMutualFriendsList", friendship.FrienshipServiceInput{RequestEmail: tc.requestInput.Friends[0]}).Return(tc.mockRespone, tc.mockError)
-			} else {
-				mockFriendship.On("GetMutualFriendsList", friendship.FrienshipServiceInput{RequestEmail: tc.requestInput.Friends[0], TargetEmail: tc.requestInput.Friends[1]}).Return(tc.mockRespone, tc.mockError)
+			if tc.requestInput.Friends != nil {
+				if tc.name == "Not enough parameters" {
+					mockFriendship.On("GetMutualFriendsList", friendship.FrienshipServiceInput{RequestEmail: tc.requestInput.Friends[0]}).Return(tc.mockRespone, tc.mockError)
+				} else {
+					mockFriendship.On("GetMutualFriendsList", friendship.FrienshipServiceInput{RequestEmail: tc.requestInput.Friends[0], TargetEmail: tc.requestInput.Friends[1]}).Return(tc.mockRespone, tc.mockError)
+				}
 			}
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
-
 			jsonValue, _ := json.Marshal(tc.requestInput)
+
 			c.Request, _ = http.NewRequest("POST", "/get-mutual-list-friends", bytes.NewBuffer(jsonValue))
 
 			// When
@@ -313,7 +332,6 @@ func TestSubscribeController(t *testing.T) {
 				Requestor: "requestor",
 				Target:    "target",
 			},
-			mockErrror:        errors.New("Email Invalid Format"),
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
 		},
 		{
@@ -321,7 +339,6 @@ func TestSubscribeController(t *testing.T) {
 			inputRequest: RequestUpdate{
 				Requestor: "requestor@gmail.com",
 			},
-			mockErrror:        errors.New("Request Invalid"),
 			expectedErrorBody: `{"error":"BindJson Error, cause body request invalid"}`,
 		},
 	}
@@ -358,7 +375,6 @@ func TestSubscribeController(t *testing.T) {
 }
 
 func TestBlockController(t *testing.T) {
-
 	// Given
 
 	testCase := []struct {
@@ -391,7 +407,6 @@ func TestBlockController(t *testing.T) {
 				Requestor: "requestor",
 				Target:    "target",
 			},
-			mockErrror:        errors.New("Email Invalid Format"),
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
 		},
 		{
@@ -399,7 +414,6 @@ func TestBlockController(t *testing.T) {
 			inputRequest: RequestUpdate{
 				Requestor: "requestor@gmail.com",
 			},
-			mockErrror:        errors.New("Request Invalid"),
 			expectedErrorBody: `{"error":"BindJson Error, cause body request invalid"}`,
 		},
 	}
@@ -426,6 +440,86 @@ func TestBlockController(t *testing.T) {
 
 			if tc.name == "Block Success" {
 				assert.Equal(t, 201, w.Result().StatusCode)
+				assert.Equal(t, tc.expectedSuccessBody, actualResult)
+			} else {
+				assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+				assert.Equal(t, tc.expectedErrorBody, actualResult)
+			}
+		})
+	}
+}
+
+func TestGetUsersRecvUpdateController(t *testing.T) {
+	// Given
+	testCase := []struct {
+		name                string
+		inputRequest        *RequestReciveUpdate
+		mockRespone         []string
+		mockError           error
+		expectedErrorBody   string
+		expectedSuccessBody string
+	}{
+		{
+			name: "Recvice Success",
+			inputRequest: &RequestReciveUpdate{
+				Sender: "quang@gmail.com",
+				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
+			},
+			mockRespone: []string{
+				"buiminhquang@yahoo.com",
+				"tonyquangdeptrai@gmail.com",
+				"tonyquang9x@gmail.com",
+			},
+			expectedSuccessBody: `{"success":true,"recipients":["buiminhquang@yahoo.com","tonyquangdeptrai@gmail.com","tonyquang9x@gmail.com"]}`,
+		},
+		{
+			name: "Recvice Fail",
+			inputRequest: &RequestReciveUpdate{
+				Sender: "quang@gmail.com",
+				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
+			},
+			mockError:         errors.New("Any error"),
+			expectedErrorBody: `{"error":"Any error"}`,
+		},
+		{
+			name: "Invalid Email",
+			inputRequest: &RequestReciveUpdate{
+				Sender: "quang",
+				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
+			},
+			expectedErrorBody: `{"error":"Email Invalid Format"}`,
+		},
+		{
+			name:              "Empty request body",
+			expectedErrorBody: `{"error":"BindJson Error, cause body request invalid"}`,
+		},
+	}
+
+	for _, tc := range testCase {
+		t.Run(tc.name, func(t *testing.T) {
+			mockFriendship := new(friendship.FrienshipMockService)
+			if tc.inputRequest != nil {
+				mentioned := utils.ExtractMentionEmail(tc.inputRequest.Text)
+				mockFriendship.On("GetUsersRecevieUpdate", tc.inputRequest.Sender, mentioned).Return(tc.mockRespone, tc.mockError)
+			}
+
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+
+			jsonVal, _ := json.Marshal(tc.inputRequest)
+			c.Request, _ = http.NewRequest("POST", "/get-list-users-revcive-update", bytes.NewBuffer(jsonVal))
+
+			// When
+
+			GetUsersRecvUpdateController(c, mockFriendship)
+
+			// Then
+
+			body, _ := ioutil.ReadAll(w.Result().Body)
+			actualResult := string(body)
+
+			if tc.name == "Recvice Success" {
+				assert.Equal(t, 200, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedSuccessBody, actualResult)
 			} else {
 				assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
