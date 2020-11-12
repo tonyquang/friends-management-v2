@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/md5"
+
 	"encoding/hex"
 	"io/ioutil"
 	"regexp"
@@ -34,21 +35,18 @@ func GetMD5Hash(text string) string {
 }
 
 // LoadFixture will load and execute SQL queries from fixture file
-func LoadFixture(tx *gorm.DB, fixturePath string) error {
-	tx.SavePoint("sp1")
+func LoadFixture(tx *gorm.DB, fixturePath string, rollBackName string) error {
 	if fixturePath != "" {
 		query, err := ioutil.ReadFile(fixturePath)
 		if err != nil {
-			tx.RollbackTo("sp1")
-			return err
+			tx.RollbackTo(rollBackName)
+			panic(err)
 		}
 		rs := tx.Raw(string(query))
 		if rs.Error != nil {
-			tx.RollbackTo("sp1")
-			return rs.Error
-
+			tx.RollbackTo(rollBackName)
+			panic(rs.Error)
 		}
 	}
-	tx.RollbackTo("sp1")
 	return nil
 }

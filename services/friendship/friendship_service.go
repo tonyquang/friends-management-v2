@@ -62,12 +62,12 @@ func (m *FriendshipManager) MakeFriend(input FrienshipServiceInput) error {
 		return errors.New("User Not Exist")
 	}
 
-	return m.execMakeFriend(requestor, target)
+	return m.execCreateFriendConnection(requestor, target, true, 0)
 }
 
 // execMakeFriend execute query make friend
-func (m *FriendshipManager) execMakeFriend(requestor string, target string) error {
-	rs := m.dbconn.Create(&Friendship{FirstUser: requestor, SecondUser: target, IsFriend: true, UpdateStatus: 0})
+func (m *FriendshipManager) execCreateFriendConnection(requestor string, target string, isFr bool, updateStatus int) error {
+	rs := m.dbconn.Create(&Friendship{FirstUser: requestor, SecondUser: target, IsFriend: isFr, UpdateStatus: updateStatus})
 	return rs.Error
 }
 
