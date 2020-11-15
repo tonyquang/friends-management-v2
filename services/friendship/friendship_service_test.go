@@ -162,6 +162,110 @@ func TestGetMutualFriendsListUserNotExist(t *testing.T) {
 
 // ==================================== END TEST GetMutualFriendsList FUNC =================================
 
+// ==================================== BEGIN TEST Subscribe FUNC =================================
+
+func TestSubscribeIfBothWasFriendSuccess(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	friendshipMana := NewFriendshipManager(tx)
+	const numUsers int = 2
+	users, ok := InsertUsersTest(tx, numUsers)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, numUsers, len(users))
+
+	assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
+
+	actualRs := friendshipMana.Subscribe(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
+	assert.Nil(t, actualRs)
+}
+
+func TestSubscribeIfBothWasNotFriendSuccess(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	friendshipMana := NewFriendshipManager(tx)
+	const numUsers int = 2
+	users, ok := InsertUsersTest(tx, numUsers)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, numUsers, len(users))
+
+	actualRs := friendshipMana.Subscribe(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
+	assert.Nil(t, actualRs)
+}
+
+func TestSubscribeUserNotExist(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	friendshipMana := NewFriendshipManager(tx)
+	actualRs := friendshipMana.Subscribe(FrienshipServiceInput{RequestEmail: "usernotexist@notfound.com", TargetEmail: "usernotexist2@notfound.com"})
+	assert.EqualError(t, actualRs, "User Not Exist")
+}
+
+// ==================================== END TEST Subscribe FUNC =================================
+
+// ==================================== BEGIN TEST Block FUNC =================================
+
+func TestBlockIfBothWasFriendSuccess(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	friendshipMana := NewFriendshipManager(tx)
+	const numUsers int = 2
+	users, ok := InsertUsersTest(tx, numUsers)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, numUsers, len(users))
+
+	assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
+
+	actualRs := friendshipMana.Block(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
+	assert.Nil(t, actualRs)
+}
+
+func TestBlockIfBothWasNotFriendSuccess(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	friendshipMana := NewFriendshipManager(tx)
+	const numUsers int = 2
+	users, ok := InsertUsersTest(tx, numUsers)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, numUsers, len(users))
+
+	//assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
+
+	actualRs := friendshipMana.Block(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
+	assert.Nil(t, actualRs)
+}
+
+func TestBlockUserNotExist(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	friendshipMana := NewFriendshipManager(tx)
+	actualRs := friendshipMana.Block(FrienshipServiceInput{RequestEmail: "usernotexist@notfound.com", TargetEmail: "usernotexist2@notfound.com"})
+	assert.EqualError(t, actualRs, "User Not Exist")
+}
+
+// ==================================== END TEST Block FUNC =================================
+
+// ==================================== BEGIN TEST GetUsersReceiveUpdate FUNC =================================
+
+// ==================================== END TEST GetUsersReceiveUpdate FUNC =================================
+
 // InsertUsersTest
 func InsertUsersTest(tx *gorm.DB, numsUser int) ([]string, bool) {
 	listUsers := []string{}

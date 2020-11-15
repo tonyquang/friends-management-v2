@@ -24,7 +24,7 @@ func (_m *FrienshipMockService) GetMutualFriendsList(input FrienshipServiceInput
 	args := _m.Called(input)
 	return args.Get(0).([]string), args.Error(1)
 }
-func (_m *FrienshipMockService) Subcribe(input FrienshipServiceInput) error {
+func (_m *FrienshipMockService) Subscribe(input FrienshipServiceInput) error {
 	args := _m.Called(input)
 	return args.Error(0)
 }
@@ -32,7 +32,7 @@ func (_m *FrienshipMockService) Block(input FrienshipServiceInput) error {
 	args := _m.Called(input)
 	return args.Error(0)
 }
-func (_m *FrienshipMockService) GetUsersRecevieUpdate(sender string, mentionedUsers []string) ([]string, error) {
+func (_m *FrienshipMockService) GetUsersReceiveUpdate(sender string, mentionedUsers []string) ([]string, error) {
 	args := _m.Called(sender, mentionedUsers)
 	return args.Get(0).([]string), args.Error(1)
 }

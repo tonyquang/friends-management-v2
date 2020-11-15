@@ -118,7 +118,7 @@ func SubscribeController(c *gin.Context, service friendship.FrienshipServices) {
 		return
 	}
 
-	rs := service.Subcribe(friendship.FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
+	rs := service.Subscribe(friendship.FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
 
 	if rs != nil {
 		c.JSON(400, gin.H{"error": rs.Error()})
@@ -174,7 +174,7 @@ func GetUsersRecvUpdateController(c *gin.Context, service friendship.FrienshipSe
 
 	mentioned := utils.ExtractMentionEmail(reqRecvUpdate.Text)
 
-	rs, err := service.GetUsersRecevieUpdate(reqRecvUpdate.Sender, mentioned)
+	rs, err := service.GetUsersReceiveUpdate(reqRecvUpdate.Sender, mentioned)
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})

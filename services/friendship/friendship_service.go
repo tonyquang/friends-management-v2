@@ -11,9 +11,9 @@ type FrienshipServices interface {
 	MakeFriend(input FrienshipServiceInput) error
 	GetUserFriendList(user user.Users) ([]string, error)
 	GetMutualFriendsList(input FrienshipServiceInput) ([]string, error)
-	Subcribe(input FrienshipServiceInput) error
+	Subscribe(input FrienshipServiceInput) error
 	Block(input FrienshipServiceInput) error
-	GetUsersRecevieUpdate(sender string, mentionedUsers []string) ([]string, error)
+	GetUsersReceiveUpdate(sender string, mentionedUsers []string) ([]string, error)
 }
 
 // FriendshipManager is the implementation of recurring service
@@ -142,8 +142,8 @@ func (m *FriendshipManager) GetMutualFriendsList(input FrienshipServiceInput) ([
 	return listMutualFriends, nil //ffdf
 }
 
-//Subcribe Update Subscribe
-func (m *FriendshipManager) Subcribe(input FrienshipServiceInput) error {
+//Subscribe Update Subscribe
+func (m *FriendshipManager) Subscribe(input FrienshipServiceInput) error {
 	listUsers := []string{input.RequestEmail, input.TargetEmail}
 
 	IsExist, err := m.checkUserExist(listUsers)
@@ -281,7 +281,7 @@ func (m *FriendshipManager) Block(input FrienshipServiceInput) error {
 	return nil
 }
 
-func (m *FriendshipManager) GetUsersRecevieUpdate(sender string, metion []string) ([]string, error) {
+func (m *FriendshipManager) GetUsersReceiveUpdate(sender string, metion []string) ([]string, error) {
 	listUsers := []string{sender}
 
 	IsExist, err := m.checkUserExist(listUsers)
