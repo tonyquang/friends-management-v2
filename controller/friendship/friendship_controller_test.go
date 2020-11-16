@@ -82,16 +82,16 @@ func TestMakeFriendController(t *testing.T) {
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
 
-			frienshipMork := new(friendship.FrienshipMockService)
+			frienshipMock := new(friendship.FrienshipMockService)
 			if tc.input.Friends != nil {
 				if tc.name != "Make Friend Fail" {
 					if len(tc.input.Friends) == 2 {
-						frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(nil)
+						frienshipMock.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(nil)
 					} else {
-						frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0]}).Return(nil)
+						frienshipMock.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0]}).Return(nil)
 					}
 				} else {
-					frienshipMork.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(errors.New("Any Error"))
+					frienshipMock.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(errors.New("Any Error"))
 				}
 			}
 
@@ -104,7 +104,7 @@ func TestMakeFriendController(t *testing.T) {
 			c.Request.Header.Set("Content-Type", "application/json")
 			// When
 
-			MakeFriendController(c, frienshipMork)
+			MakeFriendController(c, frienshipMock)
 
 			// Then
 			var actualResult map[string]interface{}
@@ -123,7 +123,7 @@ func TestMakeFriendController(t *testing.T) {
 
 }
 
-func TestGetFriendList(t *testing.T) {
+func TestGetFriendsList(t *testing.T) {
 
 	// Given
 
@@ -163,7 +163,7 @@ func TestGetFriendList(t *testing.T) {
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
-			mockFriendship.On("GetUserFriendList", tc.input).Return(tc.mockRespone, tc.mockError)
+			mockFriendship.On("GetFriendsList", tc.input).Return(tc.mockRespone, tc.mockError)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
@@ -173,7 +173,7 @@ func TestGetFriendList(t *testing.T) {
 			c.Request, _ = http.NewRequest("POST", "/get-list-friends", bytes.NewBuffer(jsonValue))
 
 			// When
-			GetFriendList(c, mockFriendship)
+			GetFriendsListController(c, mockFriendship)
 
 			// Then
 			var actualResult string
@@ -305,7 +305,7 @@ func TestSubscribeController(t *testing.T) {
 	testCase := []struct {
 		name                string
 		inputRequest        RequestUpdate
-		mockErrror          error
+		mockError           error
 		expectedErrorBody   string
 		expectedSuccessBody string
 	}{
@@ -323,7 +323,7 @@ func TestSubscribeController(t *testing.T) {
 				Requestor: "requestor@gmail.com",
 				Target:    "target@gmail.com",
 			},
-			mockErrror:        errors.New("Any error"),
+			mockError:         errors.New("Any error"),
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
 		{
@@ -346,7 +346,7 @@ func TestSubscribeController(t *testing.T) {
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
-			mockFriendship.On("Subcribe", friendship.FrienshipServiceInput{RequestEmail: tc.inputRequest.Requestor, TargetEmail: tc.inputRequest.Target}).Return(tc.mockErrror)
+			mockFriendship.On("Subscribe", friendship.FrienshipServiceInput{RequestEmail: tc.inputRequest.Requestor, TargetEmail: tc.inputRequest.Target}).Return(tc.mockError)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
@@ -380,7 +380,7 @@ func TestBlockController(t *testing.T) {
 	testCase := []struct {
 		name                string
 		inputRequest        RequestUpdate
-		mockErrror          error
+		mockError           error
 		expectedErrorBody   string
 		expectedSuccessBody string
 	}{
@@ -398,7 +398,7 @@ func TestBlockController(t *testing.T) {
 				Requestor: "requestor@gmail.com",
 				Target:    "target@gmail.com",
 			},
-			mockErrror:        errors.New("Any error"),
+			mockError:         errors.New("Any error"),
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
 		{
@@ -421,7 +421,7 @@ func TestBlockController(t *testing.T) {
 	for _, tc := range testCase {
 		t.Run(tc.name, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
-			mockFriendship.On("Block", friendship.FrienshipServiceInput{RequestEmail: tc.inputRequest.Requestor, TargetEmail: tc.inputRequest.Target}).Return(tc.mockErrror)
+			mockFriendship.On("Block", friendship.FrienshipServiceInput{RequestEmail: tc.inputRequest.Requestor, TargetEmail: tc.inputRequest.Target}).Return(tc.mockError)
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
@@ -453,7 +453,7 @@ func TestGetUsersRecvUpdateController(t *testing.T) {
 	// Given
 	testCase := []struct {
 		name                string
-		inputRequest        *RequestReciveUpdate
+		inputRequest        *RequestReceiveUpdate
 		mockRespone         []string
 		mockError           error
 		expectedErrorBody   string
@@ -461,7 +461,7 @@ func TestGetUsersRecvUpdateController(t *testing.T) {
 	}{
 		{
 			name: "Recvice Success",
-			inputRequest: &RequestReciveUpdate{
+			inputRequest: &RequestReceiveUpdate{
 				Sender: "quang@gmail.com",
 				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
 			},
@@ -474,7 +474,7 @@ func TestGetUsersRecvUpdateController(t *testing.T) {
 		},
 		{
 			name: "Recvice Fail",
-			inputRequest: &RequestReciveUpdate{
+			inputRequest: &RequestReceiveUpdate{
 				Sender: "quang@gmail.com",
 				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
 			},
@@ -483,7 +483,7 @@ func TestGetUsersRecvUpdateController(t *testing.T) {
 		},
 		{
 			name: "Invalid Email",
-			inputRequest: &RequestReciveUpdate{
+			inputRequest: &RequestReceiveUpdate{
 				Sender: "quang",
 				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
 			},
@@ -500,14 +500,14 @@ func TestGetUsersRecvUpdateController(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
 			if tc.inputRequest != nil {
 				mentioned := utils.ExtractMentionEmail(tc.inputRequest.Text)
-				mockFriendship.On("GetUsersRecevieUpdate", tc.inputRequest.Sender, mentioned).Return(tc.mockRespone, tc.mockError)
+				mockFriendship.On("GetUsersReceiveUpdate", tc.inputRequest.Sender, mentioned).Return(tc.mockRespone, tc.mockError)
 			}
 
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 
 			jsonVal, _ := json.Marshal(tc.inputRequest)
-			c.Request, _ = http.NewRequest("POST", "/get-list-users-revcive-update", bytes.NewBuffer(jsonVal))
+			c.Request, _ = http.NewRequest("POST", "/get-list-users-receive-update", bytes.NewBuffer(jsonVal))
 
 			// When
 

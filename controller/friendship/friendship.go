@@ -7,7 +7,7 @@ type ResponeListFriends struct {
 	Count   uint64   `json:"count"`
 }
 
-type ResponeReciveUpdate struct {
+type ResponeReceiveUpdate struct {
 	Success    bool     `json:"success"`
 	Recipients []string `json:"recipients"`
 }
@@ -17,7 +17,7 @@ type RequestFriend struct {
 	Friends []string `json:"friends" binding:"required"`
 }
 
-type RequestReciveUpdate struct {
+type RequestReceiveUpdate struct {
 	Sender string `json:"sender" binding:"required"`
 	Text   string `json:"text" binding:"required"`
 }

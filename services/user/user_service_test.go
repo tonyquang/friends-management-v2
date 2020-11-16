@@ -1,8 +1,9 @@
 package user
 
 import (
-	"friends_management_v2/utils"
 	"testing"
+
+	"friends_management_v2/utils"
 
 	randomData "github.com/Pallinder/go-randomdata"
 	"github.com/stretchr/testify/assert"

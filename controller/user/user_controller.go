@@ -1,10 +1,11 @@
 package user
 
 import (
+	"net/http"
+
 	"friends_management_v2/services/user"
 	userService "friends_management_v2/services/user"
 	"friends_management_v2/utils"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )

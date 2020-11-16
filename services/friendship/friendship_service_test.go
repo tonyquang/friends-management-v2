@@ -1,9 +1,10 @@
 package friendship
 
 import (
+	"testing"
+
 	"friends_management_v2/services/user"
 	"friends_management_v2/utils"
-	"testing"
 
 	randomData "github.com/Pallinder/go-randomdata"
 	"github.com/stretchr/testify/assert"
@@ -23,8 +24,8 @@ func TestMakeFriendSuccess(t *testing.T) {
 	assert.Equal(t, true, ok)
 	assert.Equal(t, 2, len(users))
 
-	friendshipMana := NewFriendshipManager(tx)
-	assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
+	friendshipManager := NewFriendshipManager(tx)
+	assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
 }
 
 func TestExistFriendship(t *testing.T) {
@@ -38,10 +39,10 @@ func TestExistFriendship(t *testing.T) {
 	assert.Equal(t, true, ok)
 	assert.Equal(t, 2, len(users))
 
-	friendshipMana := NewFriendshipManager(tx)
-	assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
+	friendshipManager := NewFriendshipManager(tx)
+	assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
 
-	assert.EqualError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}), "Friendship was exist")
+	assert.EqualError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}), "Friendship was exist")
 }
 
 func TestMakeFriendWithUserNotExist(t *testing.T) {
@@ -57,8 +58,8 @@ func TestMakeFriendWithUserNotExist(t *testing.T) {
 
 	usersNotExist := "usernotexist123@notexist.notfound"
 
-	friendshipMana := NewFriendshipManager(tx)
-	assert.EqualError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: usersNotExist}), "User Not Exist")
+	friendshipManager := NewFriendshipManager(tx)
+	assert.EqualError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: usersNotExist}), "User Not Exist")
 }
 
 // ==================================== END TEST MakeFriend FUNC =================================
@@ -76,14 +77,14 @@ func TestGetUserFriendListSuccess(t *testing.T) {
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
-	friendshipMana := NewFriendshipManager(tx)
+	friendshipManager := NewFriendshipManager(tx)
 	for i := 1; i < numUsers; i++ {
-		assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[i]}))
+		assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[i]}))
 	}
 
 	expectedListUsers := []string{}
 	expectedListUsers = append(expectedListUsers, users[1:]...)
-	actualListUsers, err := friendshipMana.GetUserFriendList(user.Users{Email: users[0]})
+	actualListUsers, err := friendshipManager.GetFriendsList(user.Users{Email: users[0]})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, actualListUsers)
@@ -93,8 +94,8 @@ func TestGetUserFriendListSuccess(t *testing.T) {
 func TestGetUserFriendListWithUserNotExist(t *testing.T) {
 	dbconn := utils.CreateConnection()
 
-	friendshipMana := NewFriendshipManager(dbconn)
-	actualFriendsList, err := friendshipMana.GetUserFriendList(user.Users{Email: "usernotexist@notfound.com"})
+	friendshipManager := NewFriendshipManager(dbconn)
+	actualFriendsList, err := friendshipManager.GetFriendsList(user.Users{Email: "usernotexist@notfound.com"})
 	assert.Nil(t, actualFriendsList)
 	assert.EqualError(t, err, "User Not Exist")
 }
@@ -114,18 +115,18 @@ func TestGetMutualFriendsListSuccess(t *testing.T) {
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
-	first_user := users[0]
-	second_user := users[1]
+	firstUser := users[0]
+	secondUser := users[1]
 
-	friendshipMana := NewFriendshipManager(tx)
+	friendshipManager := NewFriendshipManager(tx)
 	for i := 2; i < numUsers; i++ {
-		assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: first_user, TargetEmail: users[i]}))
-		assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: second_user, TargetEmail: users[i]}))
+		assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: users[i]}))
+		assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: secondUser, TargetEmail: users[i]}))
 	}
 
 	expectedMutualFriendsList := []string{}
 	expectedMutualFriendsList = append(expectedMutualFriendsList, users[2:]...)
-	actualMutualFriendsList, err := friendshipMana.GetMutualFriendsList(FrienshipServiceInput{RequestEmail: first_user, TargetEmail: second_user})
+	actualMutualFriendsList, err := friendshipManager.GetMutualFriendsList(FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
 	assert.NotNil(t, actualMutualFriendsList)
 	assert.NoError(t, err)
 	assert.Nil(t, difference(expectedMutualFriendsList, actualMutualFriendsList))
@@ -142,18 +143,18 @@ func TestGetMutualFriendsListUserNotExist(t *testing.T) {
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
-	first_user := users[0]
-	second_user := users[1]
+	firstUser := users[0]
+	secondUser := users[1]
 
-	friendshipMana := NewFriendshipManager(tx)
+	friendshipManager := NewFriendshipManager(tx)
 	for i := 2; i < numUsers; i++ {
-		assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: first_user, TargetEmail: users[i]}))
-		assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: second_user, TargetEmail: users[i]}))
+		assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: users[i]}))
+		assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: secondUser, TargetEmail: users[i]}))
 	}
 
 	expectedMutualFriendsList := []string{}
 	expectedMutualFriendsList = append(expectedMutualFriendsList, users[2:]...)
-	actualMutualFriendsList, err := friendshipMana.GetMutualFriendsList(FrienshipServiceInput{RequestEmail: first_user, TargetEmail: second_user})
+	actualMutualFriendsList, err := friendshipManager.GetMutualFriendsList(FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
 	assert.NotNil(t, actualMutualFriendsList)
 	assert.NoError(t, err)
 
@@ -170,15 +171,15 @@ func TestSubscribeIfBothWasFriendSuccess(t *testing.T) {
 	tx.SavePoint("sp1")
 	defer tx.RollbackTo("sp1")
 
-	friendshipMana := NewFriendshipManager(tx)
+	friendshipManager := NewFriendshipManager(tx)
 	const numUsers int = 2
 	users, ok := InsertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
-	assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
+	assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
 
-	actualRs := friendshipMana.Subscribe(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
+	actualRs := friendshipManager.Subscribe(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
 	assert.Nil(t, actualRs)
 }
 
@@ -188,13 +189,13 @@ func TestSubscribeIfBothWasNotFriendSuccess(t *testing.T) {
 	tx.SavePoint("sp1")
 	defer tx.RollbackTo("sp1")
 
-	friendshipMana := NewFriendshipManager(tx)
+	friendshipManager := NewFriendshipManager(tx)
 	const numUsers int = 2
 	users, ok := InsertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
-	actualRs := friendshipMana.Subscribe(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
+	actualRs := friendshipManager.Subscribe(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
 	assert.Nil(t, actualRs)
 }
 
@@ -204,8 +205,8 @@ func TestSubscribeUserNotExist(t *testing.T) {
 	tx.SavePoint("sp1")
 	defer tx.RollbackTo("sp1")
 
-	friendshipMana := NewFriendshipManager(tx)
-	actualRs := friendshipMana.Subscribe(FrienshipServiceInput{RequestEmail: "usernotexist@notfound.com", TargetEmail: "usernotexist2@notfound.com"})
+	friendshipManager := NewFriendshipManager(tx)
+	actualRs := friendshipManager.Subscribe(FrienshipServiceInput{RequestEmail: "usernotexist@notfound.com", TargetEmail: "usernotexist2@notfound.com"})
 	assert.EqualError(t, actualRs, "User Not Exist")
 }
 
@@ -219,15 +220,15 @@ func TestBlockIfBothWasFriendSuccess(t *testing.T) {
 	tx.SavePoint("sp1")
 	defer tx.RollbackTo("sp1")
 
-	friendshipMana := NewFriendshipManager(tx)
+	friendshipManager := NewFriendshipManager(tx)
 	const numUsers int = 2
 	users, ok := InsertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
-	assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
+	assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
 
-	actualRs := friendshipMana.Block(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
+	actualRs := friendshipManager.Block(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
 	assert.Nil(t, actualRs)
 }
 
@@ -237,15 +238,13 @@ func TestBlockIfBothWasNotFriendSuccess(t *testing.T) {
 	tx.SavePoint("sp1")
 	defer tx.RollbackTo("sp1")
 
-	friendshipMana := NewFriendshipManager(tx)
+	friendshipManager := NewFriendshipManager(tx)
 	const numUsers int = 2
 	users, ok := InsertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
-	//assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
-
-	actualRs := friendshipMana.Block(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
+	actualRs := friendshipManager.Block(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
 	assert.Nil(t, actualRs)
 }
 
@@ -255,8 +254,8 @@ func TestBlockUserNotExist(t *testing.T) {
 	tx.SavePoint("sp1")
 	defer tx.RollbackTo("sp1")
 
-	friendshipMana := NewFriendshipManager(tx)
-	actualRs := friendshipMana.Block(FrienshipServiceInput{RequestEmail: "usernotexist@notfound.com", TargetEmail: "usernotexist2@notfound.com"})
+	friendshipManager := NewFriendshipManager(tx)
+	actualRs := friendshipManager.Block(FrienshipServiceInput{RequestEmail: "usernotexist@notfound.com", TargetEmail: "usernotexist2@notfound.com"})
 	assert.EqualError(t, actualRs, "User Not Exist")
 }
 
@@ -269,7 +268,7 @@ func TestGetUsersReceiveUpdateSuccess(t *testing.T) {
 	tx.SavePoint("sp1")
 	defer tx.RollbackTo("sp1")
 
-	friendshipMana := NewFriendshipManager(tx)
+	friendshipManager := NewFriendshipManager(tx)
 
 	// Sender
 	sender, ok0 := InsertUsersTest(tx, 1)
@@ -284,9 +283,9 @@ func TestGetUsersReceiveUpdateSuccess(t *testing.T) {
 
 	// User will be use subscribe to sender
 	const numUsersSubscribe int = 3
-	usersSubcribe, ok2 := InsertUsersTest(tx, numUsersSubscribe)
+	usersSubscribe, ok2 := InsertUsersTest(tx, numUsersSubscribe)
 	assert.Equal(t, true, ok2)
-	assert.Equal(t, numUsersSubscribe, len(usersSubcribe))
+	assert.Equal(t, numUsersSubscribe, len(usersSubscribe))
 
 	// User mentioned
 	const numUsersMentioned int = 2
@@ -296,21 +295,21 @@ func TestGetUsersReceiveUpdateSuccess(t *testing.T) {
 
 	// Make Friend
 	for i := 0; i < numUsersMakeFriend; i++ {
-		assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: usersWillMakeFriend[i], TargetEmail: sender[0]}))
+		assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: usersWillMakeFriend[i], TargetEmail: sender[0]}))
 	}
 
 	// Subscribe
 	for i := 0; i < numUsersSubscribe; i++ {
-		assert.NoError(t, friendshipMana.Subscribe(FrienshipServiceInput{RequestEmail: usersSubcribe[i], TargetEmail: sender[0]}))
+		assert.NoError(t, friendshipManager.Subscribe(FrienshipServiceInput{RequestEmail: usersSubscribe[i], TargetEmail: sender[0]}))
 	}
 
 	// Expected result
 	expectedRs := []string{}
 	expectedRs = append(expectedRs, usersWillMakeFriend...)
-	expectedRs = append(expectedRs, usersSubcribe...)
+	expectedRs = append(expectedRs, usersSubscribe...)
 	expectedRs = append(expectedRs, usersMentioned...)
 
-	actualRs, err := friendshipMana.GetUsersReceiveUpdate(sender[0], usersMentioned)
+	actualRs, err := friendshipManager.GetUsersReceiveUpdate(sender[0], usersMentioned)
 
 	assert.NoError(t, err)
 	assert.Nil(t, difference(actualRs, expectedRs))
@@ -322,8 +321,8 @@ func TestGetUsersReceiveUpdateUserNotExist(t *testing.T) {
 	tx.SavePoint("sp1")
 	defer tx.RollbackTo("sp1")
 
-	friendshipMana := NewFriendshipManager(tx)
-	_, err := friendshipMana.GetUsersReceiveUpdate("usernotexist@notfound.com", []string{""})
+	friendshipManager := NewFriendshipManager(tx)
+	_, err := friendshipManager.GetUsersReceiveUpdate("usernotexist@notfound.com", []string{""})
 	assert.EqualError(t, err, "User Not Exist")
 }
 
@@ -332,10 +331,10 @@ func TestGetUsersReceiveUpdateUserNotExist(t *testing.T) {
 // InsertUsersTest
 func InsertUsersTest(tx *gorm.DB, numsUser int) ([]string, bool) {
 	listUsers := []string{}
-	userMana := user.NewUserManager(tx)
+	userManager := user.NewUserManager(tx)
 	for i := 0; i < numsUser; i++ {
 		email := randomData.Email()
-		err := userMana.CreateNewUser(user.Users{Email: email})
+		err := userManager.CreateNewUser(user.Users{Email: email})
 		if err != nil {
 			return nil, false
 		}

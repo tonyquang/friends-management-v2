@@ -1,14 +1,13 @@
 package controller
 
 import (
-	migration "friends_management_v2/migrations"
-	friendshipService "friends_management_v2/services/friendship"
-	userService "friends_management_v2/services/user"
 	"net/http"
 
 	friendshipController "friends_management_v2/controller/friendship"
-
 	userController "friends_management_v2/controller/user"
+	migration "friends_management_v2/migrations"
+	friendshipService "friends_management_v2/services/friendship"
+	userService "friends_management_v2/services/user"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -36,7 +35,7 @@ func Setup(db *gorm.DB) http.Handler {
 	})
 
 	r.POST("/get-list-friends", func(c *gin.Context) {
-		friendshipController.GetFriendList(c, friendshipService)
+		friendshipController.GetFriendsListController(c, friendshipService)
 	})
 
 	r.POST("/get-mutual-list-friends", func(c *gin.Context) {
@@ -51,7 +50,7 @@ func Setup(db *gorm.DB) http.Handler {
 		friendshipController.BlockController(c, friendshipService)
 	})
 
-	r.POST("/get-list-users-revcive-update", func(c *gin.Context) {
+	r.POST("/get-list-users-receive-update", func(c *gin.Context) {
 		friendshipController.GetUsersRecvUpdateController(c, friendshipService)
 	})
 	return r

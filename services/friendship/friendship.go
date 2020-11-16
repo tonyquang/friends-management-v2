@@ -21,7 +21,7 @@ type Friendship struct {
 }
 
 // UpdateStatus Mean
-// -Case 1: equal 0 when FirstUser and SecondUser Make A new friend Connection and Both not subcribe update each other
+// -Case 1: equal 0 when FirstUser and SecondUser block update together
 // A <--------------x------------- B
 // A -------------x--------------> B
 

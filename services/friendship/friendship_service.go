@@ -2,6 +2,7 @@ package friendship
 
 import (
 	"errors"
+
 	"friends_management_v2/services/user"
 
 	"gorm.io/gorm"
@@ -9,7 +10,7 @@ import (
 
 type FrienshipServices interface {
 	MakeFriend(input FrienshipServiceInput) error
-	GetUserFriendList(user user.Users) ([]string, error)
+	GetFriendsList(user user.Users) ([]string, error)
 	GetMutualFriendsList(input FrienshipServiceInput) ([]string, error)
 	Subscribe(input FrienshipServiceInput) error
 	Block(input FrienshipServiceInput) error
@@ -78,7 +79,7 @@ func (m *FriendshipManager) execUpdateMakeFriend(input []string) error {
 }
 
 //GetUserFriendList
-func (m *FriendshipManager) GetUserFriendList(ur user.Users) ([]string, error) {
+func (m *FriendshipManager) GetFriendsList(ur user.Users) ([]string, error) {
 
 	IsExist, err := m.checkUserExist([]string{ur.Email})
 
@@ -312,7 +313,7 @@ func (m *FriendshipManager) GetUsersReceiveUpdate(sender string, metion []string
 	return listFriend, nil
 }
 
-//Check Connection Between Two User
+// Check Connection Between Two User
 func (m *FriendshipManager) checkFriendship(firstUser, secondUser string) (*Friendship, error) {
 	friendship := Friendship{}
 	rs := m.dbconn.Where("first_user IN ? AND second_user IN ?", []string{firstUser, secondUser}, []string{firstUser, secondUser}).Find(&Friendship{}).Scan(&friendship)
