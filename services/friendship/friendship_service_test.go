@@ -1,12 +1,11 @@
 package friendship
 
 import (
-	"fmt"
 	"friends_management_v2/services/user"
 	"friends_management_v2/utils"
-	"reflect"
 	"testing"
 
+	randomData "github.com/Pallinder/go-randomdata"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -88,7 +87,7 @@ func TestGetUserFriendListSuccess(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, actualListUsers)
-	assert.Equal(t, true, reflect.DeepEqual(expectedListUsers, actualListUsers))
+	assert.Nil(t, difference(expectedListUsers, actualListUsers))
 }
 
 func TestGetUserFriendListWithUserNotExist(t *testing.T) {
@@ -129,7 +128,7 @@ func TestGetMutualFriendsListSuccess(t *testing.T) {
 	actualMutualFriendsList, err := friendshipMana.GetMutualFriendsList(FrienshipServiceInput{RequestEmail: first_user, TargetEmail: second_user})
 	assert.NotNil(t, actualMutualFriendsList)
 	assert.NoError(t, err)
-	assert.Equal(t, true, reflect.DeepEqual(expectedMutualFriendsList, actualMutualFriendsList))
+	assert.Nil(t, difference(expectedMutualFriendsList, actualMutualFriendsList))
 }
 
 func TestGetMutualFriendsListUserNotExist(t *testing.T) {
@@ -157,7 +156,8 @@ func TestGetMutualFriendsListUserNotExist(t *testing.T) {
 	actualMutualFriendsList, err := friendshipMana.GetMutualFriendsList(FrienshipServiceInput{RequestEmail: first_user, TargetEmail: second_user})
 	assert.NotNil(t, actualMutualFriendsList)
 	assert.NoError(t, err)
-	assert.Equal(t, true, reflect.DeepEqual(expectedMutualFriendsList, actualMutualFriendsList))
+
+	assert.Nil(t, difference(expectedMutualFriendsList, actualMutualFriendsList))
 }
 
 // ==================================== END TEST GetMutualFriendsList FUNC =================================
@@ -263,6 +263,69 @@ func TestBlockUserNotExist(t *testing.T) {
 // ==================================== END TEST Block FUNC =================================
 
 // ==================================== BEGIN TEST GetUsersReceiveUpdate FUNC =================================
+func TestGetUsersReceiveUpdateSuccess(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	friendshipMana := NewFriendshipManager(tx)
+
+	// Sender
+	sender, ok0 := InsertUsersTest(tx, 1)
+	assert.Equal(t, true, ok0)
+	assert.Equal(t, 1, len(sender))
+
+	// User will be use Make Friend with sender
+	const numUsersMakeFriend int = 3
+	usersWillMakeFriend, ok1 := InsertUsersTest(tx, numUsersMakeFriend)
+	assert.Equal(t, true, ok1)
+	assert.Equal(t, numUsersMakeFriend, len(usersWillMakeFriend))
+
+	// User will be use subscribe to sender
+	const numUsersSubscribe int = 3
+	usersSubcribe, ok2 := InsertUsersTest(tx, numUsersSubscribe)
+	assert.Equal(t, true, ok2)
+	assert.Equal(t, numUsersSubscribe, len(usersSubcribe))
+
+	// User mentioned
+	const numUsersMentioned int = 2
+	usersMentioned, ok3 := InsertUsersTest(tx, numUsersMentioned)
+	assert.Equal(t, true, ok3)
+	assert.Equal(t, numUsersMentioned, len(usersMentioned))
+
+	// Make Friend
+	for i := 0; i < numUsersMakeFriend; i++ {
+		assert.NoError(t, friendshipMana.MakeFriend(FrienshipServiceInput{RequestEmail: usersWillMakeFriend[i], TargetEmail: sender[0]}))
+	}
+
+	// Subscribe
+	for i := 0; i < numUsersSubscribe; i++ {
+		assert.NoError(t, friendshipMana.Subscribe(FrienshipServiceInput{RequestEmail: usersSubcribe[i], TargetEmail: sender[0]}))
+	}
+
+	// Expected result
+	expectedRs := []string{}
+	expectedRs = append(expectedRs, usersWillMakeFriend...)
+	expectedRs = append(expectedRs, usersSubcribe...)
+	expectedRs = append(expectedRs, usersMentioned...)
+
+	actualRs, err := friendshipMana.GetUsersReceiveUpdate(sender[0], usersMentioned)
+
+	assert.NoError(t, err)
+	assert.Nil(t, difference(actualRs, expectedRs))
+}
+
+func TestGetUsersReceiveUpdateUserNotExist(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	friendshipMana := NewFriendshipManager(tx)
+	_, err := friendshipMana.GetUsersReceiveUpdate("usernotexist@notfound.com", []string{""})
+	assert.EqualError(t, err, "User Not Exist")
+}
 
 // ==================================== END TEST GetUsersReceiveUpdate FUNC =================================
 
@@ -271,7 +334,7 @@ func InsertUsersTest(tx *gorm.DB, numsUser int) ([]string, bool) {
 	listUsers := []string{}
 	userMana := user.NewUserManager(tx)
 	for i := 0; i < numsUser; i++ {
-		email := "usertest" + fmt.Sprint(i) + "@usertest.com"
+		email := randomData.Email()
 		err := userMana.CreateNewUser(user.Users{Email: email})
 		if err != nil {
 			return nil, false
@@ -279,4 +342,32 @@ func InsertUsersTest(tx *gorm.DB, numsUser int) ([]string, bool) {
 		listUsers = append(listUsers, email)
 	}
 	return listUsers, true
+}
+
+func difference(slice1 []string, slice2 []string) []string {
+	var diff []string
+
+	// Loop two times, first to find slice1 strings not in slice2,
+	// second loop to find slice2 strings not in slice1
+	for i := 0; i < 2; i++ {
+		for _, s1 := range slice1 {
+			found := false
+			for _, s2 := range slice2 {
+				if s1 == s2 {
+					found = true
+					break
+				}
+			}
+			// String not found. We add it to return slice
+			if !found {
+				diff = append(diff, s1)
+			}
+		}
+		// Swap the slices, only if it was the first loop
+		if i == 0 {
+			slice1, slice2 = slice2, slice1
+		}
+	}
+
+	return diff
 }

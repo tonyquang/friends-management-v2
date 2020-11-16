@@ -62,7 +62,7 @@ func (m *FriendshipManager) MakeFriend(input FrienshipServiceInput) error {
 		return errors.New("User Not Exist")
 	}
 
-	return m.execCreateFriendConnection(requestor, target, true, 0)
+	return m.execCreateFriendConnection(requestor, target, true, 1) // When Make Friend Frist User will subscribe update to Second User
 }
 
 // execMakeFriend execute query make friend
@@ -170,26 +170,16 @@ func (m *FriendshipManager) Subscribe(input FrienshipServiceInput) error {
 					case 
 						when f.first_user = @fuser then 1 else 2 
 					end 
-				when f.update_status > 0 then
-					case
-						when f.first_user = @fuser then
-							case
-								when f.update_status <> 1 then 3 else 1
-							end
-						else
-							case
-								when f.update_status <> 2 then 3 else 2
-							end
-					end
+				when f.update_status = 3 then 3
 				else
 					case
 						when f.first_user = @fuser then
 							case
-								when f.update_status = -1 then 1 else 3
+								when f.update_status = 1 then 1 else 3
 							end
 						else
 							case
-								when f.update_status = -2 then 2 else 3
+								when f.update_status = 1 then 3 else 2
 							end
 					end
 			END AS update_status_code 
@@ -232,36 +222,25 @@ func (m *FriendshipManager) Block(input FrienshipServiceInput) error {
 		SET update_status = 
 		(select 
 			case 
-				when f.update_status = 0 then 
-					case 
-						when f.first_user = @fuser then -1 else -2 
-					end 
-				when f.update_status = 3 then 
+				when f.update_status = 3 then
 					case
-						when f.first_user = @fuser then -3 else -4	
-					end
-				when f.update_status < 0 then
-					case
-						when f.first_user = @fuser then
-							case
-								when f.update_status <> -1 then 0 else -1
-							end
-						else
-							case
-								when f.update_status <> -2 then 0 else -2
-							end
+						when f.first_user = @fuser then 2 else 1	
 					end
 				else
 					case
-						when f.first_user = @fuser then
+						when f.update_status <> 0 then
 							case
-								when f.update_status <> 1 then -3 else -1
+								when f.first_user = @fuser then
+									case
+										when f.update_status = 1 then 0 else 2
+									end
+								else
+									case
+										when f.update_status = 2 then 0 else 1
+									end
 							end
-						else
-							case
-								when f.update_status <> 2 then -4 else -2
-							end
-					end
+						else 0	
+					end	
 			END AS update_status_code 
 		from friendships as f where f.first_user IN (@fuser,@suser) AND f.second_user IN (@fuser,@suser)) 
 		WHERE f0.first_user IN (@fuser,@suser) AND f0.second_user IN (@fuser,@suser)`
@@ -300,7 +279,7 @@ func (m *FriendshipManager) GetUsersReceiveUpdate(sender string, metion []string
 				friendships as f1
 			where
 				f1.first_user = ?
-				and (f1.update_status > 0 OR f1.update_status = -3)  
+				and (f1.update_status <> 1 AND f1.update_status <> 0)  
 				and (f1.is_friend = true or f1.update_status = 2 or f1.update_status = 3)
 			union
 			select
@@ -309,7 +288,7 @@ func (m *FriendshipManager) GetUsersReceiveUpdate(sender string, metion []string
 				friendships as f2
 			where
 				f2.second_user = ?
-				and (f2.update_status > 0 OR f2.update_status = -4)  
+				and (f2.update_status <> 2 OR f2.update_status <> 0)  
 				and (f2.is_friend = true or f2.update_status = 1 or f2.update_status = 3)`
 
 	listFriend := []string{}

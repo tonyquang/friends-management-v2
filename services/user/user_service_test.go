@@ -1,43 +1,67 @@
 package user
 
-// func TestCreateNewUser(t *testing.T) {
-// 	dbconn := utils.CreateConnection()
-// 	testCase := []struct {
-// 		name      string
-// 		givenUser Users
-// 		result    error
-// 	}{
-// 		{
-// 			name:      "Create A New User Success",
-// 			givenUser: Users{Email: "quang99@gmail.com"},
-// 			result:    nil,
-// 		},
-// 		{
-// 			name:      "User Is Already",
-// 			givenUser: Users{Email: "quang99@gmail.com"},
-// 			result:    errors.New("User is already!"),
-// 		},
-// 	}
-// 	tx := dbconn.Begin()
+import (
+	"friends_management_v2/utils"
+	"testing"
 
-// 	assert.NoError(t, utils.LoadFixture(tx, "../datatest/create_user.sql"))
+	randomData "github.com/Pallinder/go-randomdata"
+	"github.com/stretchr/testify/assert"
+)
 
-// 	tx.SavePoint("sp2")
-// 	for _, tt := range testCase {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			manager := NewUserManager(tx)
+// ================= BEGIN TEST func CreateNewUser ==============
 
-// 			rs := manager.CreateNewUser(tt.givenUser)
+func TestCreateNewUserSuccess(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
 
-// 			assert.Equal(t, tt.result, rs)
-// 		})
-// 	}
-// 	tx.RollbackTo("sp2")
-// }
+	userMana := NewUserManager(tx)
+	assert.NoError(t, userMana.CreateNewUser(Users{Email: randomData.Email()}))
+}
 
-// func TestGetListUser(t *testing.T) {
-// 	dbconn := utils.CreateConnection()
-// 	manager := NewUserManager(dbconn)
-// 	rs, err := manager.GetListUser()
-// 	assert.Equal(t, tt.result, rs)
-// }
+func TestCreateNewUserExist(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	user := Users{Email: randomData.Email()}
+
+	userMana := NewUserManager(tx)
+	assert.NoError(t, userMana.CreateNewUser(user))
+	assert.EqualError(t, userMana.CreateNewUser(user), "User is already exists!")
+}
+
+// ================= END TEST func CreateNewUser ==============
+
+// ================= BEGIN TEST func GetListUser ==============
+
+func TestGetListUserSuccess(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	userMana := NewUserManager(dbconn)
+
+	actualRs, _ := userMana.GetListUser()
+	assert.NotNil(t, actualRs)
+}
+
+// ================= END TEST func GetListUser ==============
+
+// ================= BEGIN TEST func CheckUserExist ==============
+func TestCheckUserExist(t *testing.T) {
+	dbconn := utils.CreateConnection()
+	tx := dbconn.Begin()
+	tx.SavePoint("sp1")
+	defer tx.RollbackTo("sp1")
+
+	user := Users{Email: randomData.Email()}
+
+	userMana := NewUserManager(tx)
+	assert.NoError(t, userMana.CreateNewUser(user))
+
+	actualRs, err := userMana.CheckUserExist([]string{user.Email})
+	assert.Equal(t, true, actualRs)
+	assert.Nil(t, err)
+}
+
+// ================= END TEST func CheckUserExist ==============
