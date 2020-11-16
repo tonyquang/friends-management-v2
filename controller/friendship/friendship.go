@@ -22,7 +22,7 @@ type RequestReceiveUpdate struct {
 	Text   string `json:"text" binding:"required"`
 }
 
-//Using for request Subscribe or Block Update
+// Using for request Subscribe or Block Update
 type RequestUpdate struct {
 	Requestor string `json:"requestor" binding:"required"`
 	Target    string `json:"target" binding:"required"`

@@ -1,6 +1,7 @@
 package friendship
 
 import (
+	"errors"
 	"testing"
 
 	"friends_management_v2/services/user"
@@ -11,66 +12,56 @@ import (
 	"gorm.io/gorm"
 )
 
-// ==================================== BEGIN TEST MakeFriend FUNC =================================
 // TestMakeFriendSuccess func test create friend connection between 2 users and both not yet subscribe/block together
-func TestMakeFriendSuccess(t *testing.T) {
+func TestMakeFriend(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	// Insert Testing User to Database
 	users, ok := InsertUsersTest(tx, 2)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, 2, len(users))
-
 	friendshipManager := NewFriendshipManager(tx)
-	assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
+	testCase := []struct {
+		scenario      string
+		mockInput     FrienshipServiceInput
+		expectedError error
+	}{
+		{
+			scenario: "Success",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: users[0],
+				TargetEmail:  users[1],
+			},
+			expectedError: nil,
+		},
+		{
+			scenario: "Exist Friendship",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: users[0],
+				TargetEmail:  users[1],
+			},
+			expectedError: errors.New("Friendship was exist"),
+		},
+		{
+			scenario: "User not exist",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: users[0],
+				TargetEmail:  "usernotexist123@notexist.notfound",
+			},
+			expectedError: errors.New("User Not Exist"),
+		},
+	}
+
+	for _, tc := range testCase {
+		t.Run(tc.scenario, func(t *testing.T) {
+			actualRs := friendshipManager.MakeFriend(tc.mockInput)
+			assert.Equal(t, tc.expectedError, actualRs)
+		})
+	}
 }
 
-func TestExistFriendship(t *testing.T) {
+func TestGetUserFriendList(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	// Insert Testing User to Database
-	users, ok := InsertUsersTest(tx, 2)
-	assert.Equal(t, true, ok)
-	assert.Equal(t, 2, len(users))
-
-	friendshipManager := NewFriendshipManager(tx)
-	assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
-
-	assert.EqualError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}), "Friendship was exist")
-}
-
-func TestMakeFriendWithUserNotExist(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	// Insert Testing User to Database
-	users, ok := InsertUsersTest(tx, 1)
-	assert.Equal(t, true, ok)
-	assert.Equal(t, 1, len(users))
-
-	usersNotExist := "usernotexist123@notexist.notfound"
-
-	friendshipManager := NewFriendshipManager(tx)
-	assert.EqualError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: usersNotExist}), "User Not Exist")
-}
-
-// ==================================== END TEST MakeFriend FUNC =================================
-
-// ==================================== BEGIN TEST GetUserFriendList FUNC =================================
-
-func TestGetUserFriendListSuccess(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
 
 	const numUsers int = 10
 	users, ok := InsertUsersTest(tx, numUsers)
@@ -84,31 +75,44 @@ func TestGetUserFriendListSuccess(t *testing.T) {
 
 	expectedListUsers := []string{}
 	expectedListUsers = append(expectedListUsers, users[1:]...)
-	actualListUsers, err := friendshipManager.GetFriendsList(user.Users{Email: users[0]})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, actualListUsers)
-	assert.Nil(t, difference(expectedListUsers, actualListUsers))
+	testCase := []struct {
+		scenario       string
+		mockInput      user.Users
+		expectedResult []string
+		expectedError  error
+	}{
+		{
+			scenario:       "Success",
+			mockInput:      user.Users{Email: users[0]},
+			expectedResult: expectedListUsers,
+			expectedError:  nil,
+		},
+		{
+			scenario:       "User not exist",
+			mockInput:      user.Users{Email: "usernotexist@notfound.com"},
+			expectedResult: nil,
+			expectedError:  errors.New("User Not Exist"),
+		},
+	}
+
+	for _, tc := range testCase {
+		t.Run(tc.scenario, func(t *testing.T) {
+			actualRs, err := friendshipManager.GetFriendsList(tc.mockInput)
+			if tc.scenario == "Success" {
+				assert.Nil(t, err)
+				assert.Nil(t, difference(tc.expectedResult, actualRs))
+			} else {
+				assert.Equal(t, tc.expectedError, err)
+				assert.Nil(t, nil)
+			}
+		})
+	}
 }
 
-func TestGetUserFriendListWithUserNotExist(t *testing.T) {
-	dbconn := utils.CreateConnection()
-
-	friendshipManager := NewFriendshipManager(dbconn)
-	actualFriendsList, err := friendshipManager.GetFriendsList(user.Users{Email: "usernotexist@notfound.com"})
-	assert.Nil(t, actualFriendsList)
-	assert.EqualError(t, err, "User Not Exist")
-}
-
-// ==================================== END TEST GetUserFriendList FUNC =================================
-
-// ==================================== BEGIN TEST GetMutualFriendsList FUNC =================================
-
-func TestGetMutualFriendsListSuccess(t *testing.T) {
+func TestGetMutualFriendsList(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
 
 	const numUsers int = 6
 	users, ok := InsertUsersTest(tx, numUsers)
@@ -126,19 +130,52 @@ func TestGetMutualFriendsListSuccess(t *testing.T) {
 
 	expectedMutualFriendsList := []string{}
 	expectedMutualFriendsList = append(expectedMutualFriendsList, users[2:]...)
-	actualMutualFriendsList, err := friendshipManager.GetMutualFriendsList(FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
-	assert.NotNil(t, actualMutualFriendsList)
-	assert.NoError(t, err)
-	assert.Nil(t, difference(expectedMutualFriendsList, actualMutualFriendsList))
+
+	testCase := []struct {
+		scenario       string
+		mockInput      FrienshipServiceInput
+		expectedResult []string
+		expectedError  error
+	}{
+		{
+			scenario: "Success",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: firstUser,
+				TargetEmail:  secondUser,
+			},
+			expectedResult: expectedMutualFriendsList,
+			expectedError:  nil,
+		},
+		{
+			scenario: "User not exist",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: "usernotexist@notfound.com",
+				TargetEmail:  secondUser,
+			},
+			expectedResult: nil,
+			expectedError:  errors.New("User Not Exist"),
+		},
+	}
+
+	for _, tc := range testCase {
+		t.Run(tc.scenario, func(t *testing.T) {
+			actualRs, err := friendshipManager.GetMutualFriendsList(tc.mockInput)
+			if tc.scenario == "Success" {
+				assert.Nil(t, err)
+				assert.Nil(t, difference(tc.expectedResult, actualRs))
+			} else {
+				assert.Nil(t, actualRs)
+				assert.Equal(t, tc.expectedError, err)
+			}
+		})
+	}
 }
 
-func TestGetMutualFriendsListUserNotExist(t *testing.T) {
+func TestSubscribe(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
 
-	const numUsers int = 6
+	const numUsers int = 2
 	users, ok := InsertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
@@ -147,122 +184,115 @@ func TestGetMutualFriendsListUserNotExist(t *testing.T) {
 	secondUser := users[1]
 
 	friendshipManager := NewFriendshipManager(tx)
-	for i := 2; i < numUsers; i++ {
-		assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: users[i]}))
-		assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: secondUser, TargetEmail: users[i]}))
+
+	testCase := []struct {
+		scenario      string
+		mockInput     FrienshipServiceInput
+		expectedError error
+	}{
+		{
+			scenario: "Success in case both isn't friends",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: firstUser,
+				TargetEmail:  secondUser,
+			},
+			expectedError: nil,
+		},
+		{
+			scenario: "Success in case both is friends",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: firstUser,
+				TargetEmail:  secondUser,
+			},
+			expectedError: nil,
+		},
+		{
+			scenario: "User not exist",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: "usernotexist@notfound.com",
+				TargetEmail:  secondUser,
+			},
+			expectedError: errors.New("User Not Exist"),
+		},
 	}
 
-	expectedMutualFriendsList := []string{}
-	expectedMutualFriendsList = append(expectedMutualFriendsList, users[2:]...)
-	actualMutualFriendsList, err := friendshipManager.GetMutualFriendsList(FrienshipServiceInput{RequestEmail: firstUser, TargetEmail: secondUser})
-	assert.NotNil(t, actualMutualFriendsList)
-	assert.NoError(t, err)
-
-	assert.Nil(t, difference(expectedMutualFriendsList, actualMutualFriendsList))
+	for _, tc := range testCase {
+		t.Run(tc.scenario, func(t *testing.T) {
+			if tc.scenario == "Success in case both is friends" {
+				assert.NoError(t, friendshipManager.MakeFriend(tc.mockInput))
+			}
+			err := friendshipManager.Subscribe(tc.mockInput)
+			if tc.scenario == "User not exist" {
+				assert.Equal(t, tc.expectedError, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
 
-// ==================================== END TEST GetMutualFriendsList FUNC =================================
-
-// ==================================== BEGIN TEST Subscribe FUNC =================================
-
-func TestSubscribeIfBothWasFriendSuccess(t *testing.T) {
+func TestBlock(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
 
-	friendshipManager := NewFriendshipManager(tx)
 	const numUsers int = 2
 	users, ok := InsertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
-	assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
-
-	actualRs := friendshipManager.Subscribe(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
-	assert.Nil(t, actualRs)
-}
-
-func TestSubscribeIfBothWasNotFriendSuccess(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
+	firstUser := users[0]
+	secondUser := users[1]
 
 	friendshipManager := NewFriendshipManager(tx)
-	const numUsers int = 2
-	users, ok := InsertUsersTest(tx, numUsers)
-	assert.Equal(t, true, ok)
-	assert.Equal(t, numUsers, len(users))
 
-	actualRs := friendshipManager.Subscribe(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
-	assert.Nil(t, actualRs)
+	testCase := []struct {
+		scenario      string
+		mockInput     FrienshipServiceInput
+		expectedError error
+	}{
+		{
+			scenario: "Success in case both is friends",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: firstUser,
+				TargetEmail:  secondUser,
+			},
+			expectedError: nil,
+		},
+		{
+			scenario: "Success in case both isn't friends",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: firstUser,
+				TargetEmail:  secondUser,
+			},
+			expectedError: nil,
+		},
+		{
+			scenario: "User not exist",
+			mockInput: FrienshipServiceInput{
+				RequestEmail: "usernotexist@notfound.com",
+				TargetEmail:  secondUser,
+			},
+			expectedError: errors.New("User Not Exist"),
+		},
+	}
+
+	for _, tc := range testCase {
+		t.Run(tc.scenario, func(t *testing.T) {
+			if tc.scenario == "Success in case both is friends" {
+				assert.NoError(t, friendshipManager.MakeFriend(tc.mockInput))
+			}
+			err := friendshipManager.Block(tc.mockInput)
+			if tc.scenario == "User not exist" {
+				assert.Equal(t, tc.expectedError, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
-
-func TestSubscribeUserNotExist(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	friendshipManager := NewFriendshipManager(tx)
-	actualRs := friendshipManager.Subscribe(FrienshipServiceInput{RequestEmail: "usernotexist@notfound.com", TargetEmail: "usernotexist2@notfound.com"})
-	assert.EqualError(t, actualRs, "User Not Exist")
-}
-
-// ==================================== END TEST Subscribe FUNC =================================
-
-// ==================================== BEGIN TEST Block FUNC =================================
-
-func TestBlockIfBothWasFriendSuccess(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	friendshipManager := NewFriendshipManager(tx)
-	const numUsers int = 2
-	users, ok := InsertUsersTest(tx, numUsers)
-	assert.Equal(t, true, ok)
-	assert.Equal(t, numUsers, len(users))
-
-	assert.NoError(t, friendshipManager.MakeFriend(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]}))
-
-	actualRs := friendshipManager.Block(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
-	assert.Nil(t, actualRs)
-}
-
-func TestBlockIfBothWasNotFriendSuccess(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	friendshipManager := NewFriendshipManager(tx)
-	const numUsers int = 2
-	users, ok := InsertUsersTest(tx, numUsers)
-	assert.Equal(t, true, ok)
-	assert.Equal(t, numUsers, len(users))
-
-	actualRs := friendshipManager.Block(FrienshipServiceInput{RequestEmail: users[0], TargetEmail: users[1]})
-	assert.Nil(t, actualRs)
-}
-
-func TestBlockUserNotExist(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	friendshipManager := NewFriendshipManager(tx)
-	actualRs := friendshipManager.Block(FrienshipServiceInput{RequestEmail: "usernotexist@notfound.com", TargetEmail: "usernotexist2@notfound.com"})
-	assert.EqualError(t, actualRs, "User Not Exist")
-}
-
-// ==================================== END TEST Block FUNC =================================
 
 // ==================================== BEGIN TEST GetUsersReceiveUpdate FUNC =================================
-func TestGetUsersReceiveUpdateSuccess(t *testing.T) {
+func TestGetUsersReceiveUpdate(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
 	tx.SavePoint("sp1")
@@ -288,10 +318,10 @@ func TestGetUsersReceiveUpdateSuccess(t *testing.T) {
 	assert.Equal(t, numUsersSubscribe, len(usersSubscribe))
 
 	// User mentioned
-	const numUsersMentioned int = 2
-	usersMentioned, ok3 := InsertUsersTest(tx, numUsersMentioned)
+	const numMentionedUsers int = 2
+	mentionedUsers, ok3 := InsertUsersTest(tx, numMentionedUsers)
 	assert.Equal(t, true, ok3)
-	assert.Equal(t, numUsersMentioned, len(usersMentioned))
+	assert.Equal(t, numMentionedUsers, len(mentionedUsers))
 
 	// Make Friend
 	for i := 0; i < numUsersMakeFriend; i++ {
@@ -307,26 +337,44 @@ func TestGetUsersReceiveUpdateSuccess(t *testing.T) {
 	expectedRs := []string{}
 	expectedRs = append(expectedRs, usersWillMakeFriend...)
 	expectedRs = append(expectedRs, usersSubscribe...)
-	expectedRs = append(expectedRs, usersMentioned...)
+	expectedRs = append(expectedRs, mentionedUsers...)
 
-	actualRs, err := friendshipManager.GetUsersReceiveUpdate(sender[0], usersMentioned)
+	testCase := []struct {
+		scenario               string
+		mockSenderInput        string
+		mockMentionedUserInput []string
+		expectedResult         []string
+		expectedError          error
+	}{
+		{
+			scenario:               "Success",
+			mockSenderInput:        sender[0],
+			mockMentionedUserInput: mentionedUsers,
+			expectedResult:         expectedRs,
+			expectedError:          nil,
+		},
+		{
+			scenario:               "User not exits",
+			mockSenderInput:        "usernotexist@notfound.com",
+			mockMentionedUserInput: nil,
+			expectedResult:         nil,
+			expectedError:          errors.New("User Not Exist"),
+		},
+	}
 
-	assert.NoError(t, err)
-	assert.Nil(t, difference(actualRs, expectedRs))
+	for _, tc := range testCase {
+		t.Run(tc.scenario, func(t *testing.T) {
+			actualRs, err := friendshipManager.GetUsersReceiveUpdate(tc.mockSenderInput, tc.mockMentionedUserInput)
+			if tc.scenario == "Success" {
+				assert.Nil(t, err)
+				assert.Nil(t, difference(tc.expectedResult, actualRs))
+			} else {
+				assert.Nil(t, actualRs)
+				assert.Equal(t, tc.expectedError, err)
+			}
+		})
+	}
 }
-
-func TestGetUsersReceiveUpdateUserNotExist(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	friendshipManager := NewFriendshipManager(tx)
-	_, err := friendshipManager.GetUsersReceiveUpdate("usernotexist@notfound.com", []string{""})
-	assert.EqualError(t, err, "User Not Exist")
-}
-
-// ==================================== END TEST GetUsersReceiveUpdate FUNC =================================
 
 // InsertUsersTest
 func InsertUsersTest(tx *gorm.DB, numsUser int) ([]string, bool) {

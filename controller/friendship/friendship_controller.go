@@ -159,6 +159,7 @@ func BlockController(c *gin.Context, service friendship.FrienshipServices) {
 	c.JSON(201, gin.H{"success": true})
 }
 
+// Rename
 func GetUsersRecvUpdateController(c *gin.Context, service friendship.FrienshipServices) {
 	reqRecvUpdate := RequestReceiveUpdate{}
 
@@ -172,6 +173,7 @@ func GetUsersRecvUpdateController(c *gin.Context, service friendship.FrienshipSe
 		return
 	}
 
+	// rename
 	mentioned := utils.ExtractMentionEmail(reqRecvUpdate.Text)
 
 	rs, err := service.GetUsersReceiveUpdate(reqRecvUpdate.Sender, mentioned)

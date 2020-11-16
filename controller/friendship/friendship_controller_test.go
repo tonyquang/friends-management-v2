@@ -20,6 +20,7 @@ import (
 func TestMakeFriendController(t *testing.T) {
 	// Given
 	testCase := []struct {
+		// scenario
 		name              string
 		input             RequestFriend
 		expectedErrorBody string
@@ -358,7 +359,7 @@ func TestSubscribeController(t *testing.T) {
 
 			SubscribeController(c, mockFriendship)
 
-			//Then
+			// Then
 
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			actualResult := string(body)
@@ -433,7 +434,7 @@ func TestBlockController(t *testing.T) {
 
 			BlockController(c, mockFriendship)
 
-			//Then
+			// Then
 
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			actualResult := string(body)

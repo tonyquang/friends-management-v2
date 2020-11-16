@@ -45,11 +45,12 @@ func (m *FriendshipManager) MakeFriend(input FrienshipServiceInput) error {
 			return errors.New("Friendship was exist")
 		}
 
-		if friendship.UpdateStatus <= 0 {
+		if friendship.UpdateStatus != 3 {
 			return errors.New("Blocked Add Friend")
 		}
 		return m.execUpdateMakeFriend([]string{requestor, target})
 	}
+
 	// Check user exits
 	listUsers := []string{requestor, target}
 
@@ -63,7 +64,8 @@ func (m *FriendshipManager) MakeFriend(input FrienshipServiceInput) error {
 		return errors.New("User Not Exist")
 	}
 
-	return m.execCreateFriendConnection(requestor, target, true, 1) // When Make Friend Frist User will subscribe update to Second User
+	// When Make Friend First User will subscribe update to Second User
+	return m.execCreateFriendConnection(requestor, target, true, 1)
 }
 
 // execMakeFriend execute query make friend
@@ -78,7 +80,7 @@ func (m *FriendshipManager) execUpdateMakeFriend(input []string) error {
 	return rs.Error
 }
 
-//GetUserFriendList
+// GetUserFriendList
 func (m *FriendshipManager) GetFriendsList(ur user.Users) ([]string, error) {
 
 	IsExist, err := m.checkUserExist([]string{ur.Email})
@@ -104,7 +106,7 @@ func (m *FriendshipManager) GetFriendsList(ur user.Users) ([]string, error) {
 	return listFriend, nil
 }
 
-//GetMutualFriendsList
+// GetMutualFriendsList
 func (m *FriendshipManager) GetMutualFriendsList(input FrienshipServiceInput) ([]string, error) {
 
 	listUsers := []string{input.RequestEmail, input.TargetEmail}
@@ -140,10 +142,10 @@ func (m *FriendshipManager) GetMutualFriendsList(input FrienshipServiceInput) ([
 		return nil, rs.Error
 	}
 
-	return listMutualFriends, nil //ffdf
+	return listMutualFriends, nil
 }
 
-//Subscribe Update Subscribe
+// Subscribe Update Subscribe
 func (m *FriendshipManager) Subscribe(input FrienshipServiceInput) error {
 	listUsers := []string{input.RequestEmail, input.TargetEmail}
 

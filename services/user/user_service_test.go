@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"testing"
 
 	"friends_management_v2/utils"
@@ -9,34 +10,42 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// ================= BEGIN TEST func CreateNewUser ==============
+func TestCreateNewUser(t *testing.T) {
+	const numsUser int = 1
+	listUsers := []Users{}
+	for i := 0; i < numsUser; i++ {
+		listUsers = append(listUsers, Users{Email: randomData.Email()})
+	}
 
-func TestCreateNewUserSuccess(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
 
 	userMana := NewUserManager(tx)
-	assert.NoError(t, userMana.CreateNewUser(Users{Email: randomData.Email()}))
+
+	tcs := []struct {
+		scenario      string
+		mockInput     Users
+		expectedError error
+	}{
+		{
+			scenario:      "success",
+			mockInput:     listUsers[0],
+			expectedError: nil,
+		},
+		{
+			scenario:      "User Exist",
+			mockInput:     listUsers[0],
+			expectedError: errors.New("User is already exists!"),
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.scenario, func(t *testing.T) {
+			actualRs := userMana.CreateNewUser(tc.mockInput)
+			assert.Equal(t, tc.expectedError, actualRs)
+		})
+	}
 }
-
-func TestCreateNewUserExist(t *testing.T) {
-	dbconn := utils.CreateConnection()
-	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
-
-	user := Users{Email: randomData.Email()}
-
-	userMana := NewUserManager(tx)
-	assert.NoError(t, userMana.CreateNewUser(user))
-	assert.EqualError(t, userMana.CreateNewUser(user), "User is already exists!")
-}
-
-// ================= END TEST func CreateNewUser ==============
-
-// ================= BEGIN TEST func GetListUser ==============
 
 func TestGetListUserSuccess(t *testing.T) {
 	dbconn := utils.CreateConnection()
@@ -46,14 +55,9 @@ func TestGetListUserSuccess(t *testing.T) {
 	assert.NotNil(t, actualRs)
 }
 
-// ================= END TEST func GetListUser ==============
-
-// ================= BEGIN TEST func CheckUserExist ==============
 func TestCheckUserExist(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
-	tx.SavePoint("sp1")
-	defer tx.RollbackTo("sp1")
 
 	user := Users{Email: randomData.Email()}
 
@@ -64,5 +68,3 @@ func TestCheckUserExist(t *testing.T) {
 	assert.Equal(t, true, actualRs)
 	assert.Nil(t, err)
 }
-
-// ================= END TEST func CheckUserExist ==============
