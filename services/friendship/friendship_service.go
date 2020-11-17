@@ -145,7 +145,7 @@ func (m *FriendshipManager) GetMutualFriendsList(input FrienshipServiceInput) ([
 	return listMutualFriends, nil
 }
 
-// Subscribe Update Subscribe
+// Subscribe Update
 func (m *FriendshipManager) Subscribe(input FrienshipServiceInput) error {
 	listUsers := []string{input.RequestEmail, input.TargetEmail}
 
