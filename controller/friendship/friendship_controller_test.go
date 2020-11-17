@@ -21,12 +21,12 @@ func TestMakeFriendController(t *testing.T) {
 	// Given
 	testCase := []struct {
 		// scenario
-		name              string
+		scenario          string
 		input             RequestFriend
 		expectedErrorBody string
 	}{
 		{
-			name: "Make Friend Success",
+			scenario: "Make Friend Success",
 			input: RequestFriend{
 				Friends: []string{
 					"tony1@gmail.com",
@@ -36,7 +36,7 @@ func TestMakeFriendController(t *testing.T) {
 			expectedErrorBody: "",
 		},
 		{
-			name: "Make Friend Fail",
+			scenario: "Make Friend Fail",
 			input: RequestFriend{
 				Friends: []string{
 					"someone1@gmail.com",
@@ -46,7 +46,7 @@ func TestMakeFriendController(t *testing.T) {
 			expectedErrorBody: "Any Error",
 		},
 		{
-			name: "Not enough parameters",
+			scenario: "Not enough parameters",
 			input: RequestFriend{
 				Friends: []string{
 					"quangbui1404@gmail.com",
@@ -55,7 +55,7 @@ func TestMakeFriendController(t *testing.T) {
 			expectedErrorBody: "Request Invalid",
 		},
 		{
-			name: "Same user",
+			scenario: "Same user",
 			input: RequestFriend{
 				Friends: []string{
 					"quangbui1404@gmail.com",
@@ -65,7 +65,7 @@ func TestMakeFriendController(t *testing.T) {
 			expectedErrorBody: "Request Invalid",
 		},
 		{
-			name: "Email Invalid",
+			scenario: "Email Invalid",
 			input: RequestFriend{
 				Friends: []string{
 					"abc",
@@ -75,17 +75,17 @@ func TestMakeFriendController(t *testing.T) {
 			expectedErrorBody: "Email Invalid Format",
 		},
 		{
-			name:              "Empty request body",
+			scenario:          "Empty request body",
 			expectedErrorBody: "BindJson Error, cause body request invalid",
 		},
 	}
 
 	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.scenario, func(t *testing.T) {
 
 			frienshipMock := new(friendship.FrienshipMockService)
 			if tc.input.Friends != nil {
-				if tc.name != "Make Friend Fail" {
+				if tc.scenario != "Make Friend Fail" {
 					if len(tc.input.Friends) == 2 {
 						frienshipMock.On("MakeFriend", friendship.FrienshipServiceInput{RequestEmail: tc.input.Friends[0], TargetEmail: tc.input.Friends[1]}).Return(nil)
 					} else {
@@ -129,7 +129,7 @@ func TestGetFriendsList(t *testing.T) {
 	// Given
 
 	testCase := []struct {
-		name                string
+		scenario            string
 		input               user.Users
 		mockRespone         []string
 		mockError           error
@@ -137,32 +137,32 @@ func TestGetFriendsList(t *testing.T) {
 		expectedSuccessBody string
 	}{
 		{
-			name:                "Get List Friends Success",
+			scenario:            "Get List Friends Success",
 			input:               user.Users{Email: "abc@gmail.com"},
 			mockRespone:         []string{"quang1@gmail.com", "xyz@gmail.com", "ok@yahoo.com"},
 			expectedSuccessBody: `{"success":true,"friends":["quang1@gmail.com","xyz@gmail.com","ok@yahoo.com"],"count":3}`,
 		},
 		{
-			name:              "Get List Friends Fail",
+			scenario:          "Get List Friends Fail",
 			input:             user.Users{Email: "abcxxx@gmail.com"},
 			mockError:         errors.New("Any error"),
 			mockRespone:       nil,
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
 		{
-			name:              "Invalid Email",
+			scenario:          "Invalid Email",
 			input:             user.Users{Email: "abc"},
 			mockRespone:       nil,
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
 		},
 		{
-			name:              "Empty request body",
+			scenario:          "Empty request body",
 			expectedErrorBody: `{"error":"BindJson Error, cause body request invalid"}`,
 		},
 	}
 
 	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.scenario, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
 			mockFriendship.On("GetFriendsList", tc.input).Return(tc.mockRespone, tc.mockError)
 
@@ -181,7 +181,7 @@ func TestGetFriendsList(t *testing.T) {
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			actualResult = string(body)
 
-			if tc.name == "Get List Friends Success" {
+			if tc.scenario == "Get List Friends Success" {
 				assert.Equal(t, 200, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedSuccessBody, actualResult)
 			} else {
@@ -195,7 +195,7 @@ func TestGetFriendsList(t *testing.T) {
 
 func TestGetMutualFriendsController(t *testing.T) {
 	testCase := []struct {
-		name                string
+		scenario            string
 		requestInput        RequestFriend
 		mockRespone         []string
 		mockError           error
@@ -203,7 +203,7 @@ func TestGetMutualFriendsController(t *testing.T) {
 		expectedSuccessBody string
 	}{
 		{
-			name: "Get Mutual Friends Success",
+			scenario: "Get Mutual Friends Success",
 			requestInput: RequestFriend{
 				Friends: []string{
 					"requestor@gmail.com",
@@ -218,7 +218,7 @@ func TestGetMutualFriendsController(t *testing.T) {
 			expectedSuccessBody: `{"success":true,"friends":["mutual1@gmail.com","mutual2@gmail.com","mutual3@gmail.com"],"count":3}`,
 		},
 		{
-			name: "Get Mutual Friends Fail",
+			scenario: "Get Mutual Friends Fail",
 			requestInput: RequestFriend{
 				Friends: []string{
 					"requestor@gmail.com",
@@ -229,7 +229,7 @@ func TestGetMutualFriendsController(t *testing.T) {
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
 		{
-			name: "Invalid Email",
+			scenario: "Invalid Email",
 			requestInput: RequestFriend{
 				Friends: []string{
 					"requestor",
@@ -239,7 +239,7 @@ func TestGetMutualFriendsController(t *testing.T) {
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
 		},
 		{
-			name: "requestor same target",
+			scenario: "requestor same target",
 			requestInput: RequestFriend{
 				Friends: []string{
 					"target@gmail.com",
@@ -249,7 +249,7 @@ func TestGetMutualFriendsController(t *testing.T) {
 			expectedErrorBody: `{"error":"Request Invalid"}`,
 		},
 		{
-			name: "Not enough parameters",
+			scenario: "Not enough parameters",
 			requestInput: RequestFriend{
 				Friends: []string{
 					"requestor@gmail.com",
@@ -258,16 +258,16 @@ func TestGetMutualFriendsController(t *testing.T) {
 			expectedErrorBody: `{"error":"Request Invalid"}`,
 		},
 		{
-			name:              "Empty request body",
+			scenario:          "Empty request body",
 			expectedErrorBody: `{"error":"BindJson Error, cause body request invalid"}`,
 		},
 	}
 
 	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.scenario, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
 			if tc.requestInput.Friends != nil {
-				if tc.name == "Not enough parameters" {
+				if tc.scenario == "Not enough parameters" {
 					mockFriendship.On("GetMutualFriendsList", friendship.FrienshipServiceInput{RequestEmail: tc.requestInput.Friends[0]}).Return(tc.mockRespone, tc.mockError)
 				} else {
 					mockFriendship.On("GetMutualFriendsList", friendship.FrienshipServiceInput{RequestEmail: tc.requestInput.Friends[0], TargetEmail: tc.requestInput.Friends[1]}).Return(tc.mockRespone, tc.mockError)
@@ -288,7 +288,7 @@ func TestGetMutualFriendsController(t *testing.T) {
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			actualResult := string(body)
 
-			if tc.name == "Get Mutual Friends Success" {
+			if tc.scenario == "Get Mutual Friends Success" {
 				assert.Equal(t, 200, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedSuccessBody, actualResult)
 			} else {
@@ -304,14 +304,14 @@ func TestSubscribeController(t *testing.T) {
 	// Given
 
 	testCase := []struct {
-		name                string
+		scenario            string
 		inputRequest        RequestUpdate
 		mockError           error
 		expectedErrorBody   string
 		expectedSuccessBody string
 	}{
 		{
-			name: "Subscribe Success",
+			scenario: "Subscribe Success",
 			inputRequest: RequestUpdate{
 				Requestor: "requestor@gmail.com",
 				Target:    "target@gmail.com",
@@ -319,7 +319,7 @@ func TestSubscribeController(t *testing.T) {
 			expectedSuccessBody: `{"success":true}`,
 		},
 		{
-			name: "Subscribe Fail",
+			scenario: "Subscribe Fail",
 			inputRequest: RequestUpdate{
 				Requestor: "requestor@gmail.com",
 				Target:    "target@gmail.com",
@@ -328,7 +328,7 @@ func TestSubscribeController(t *testing.T) {
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
 		{
-			name: "Invalid Mail",
+			scenario: "Invalid Mail",
 			inputRequest: RequestUpdate{
 				Requestor: "requestor",
 				Target:    "target",
@@ -336,7 +336,7 @@ func TestSubscribeController(t *testing.T) {
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
 		},
 		{
-			name: "Not enough parameters",
+			scenario: "Not enough parameters",
 			inputRequest: RequestUpdate{
 				Requestor: "requestor@gmail.com",
 			},
@@ -345,7 +345,7 @@ func TestSubscribeController(t *testing.T) {
 	}
 
 	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.scenario, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
 			mockFriendship.On("Subscribe", friendship.FrienshipServiceInput{RequestEmail: tc.inputRequest.Requestor, TargetEmail: tc.inputRequest.Target}).Return(tc.mockError)
 
@@ -364,7 +364,7 @@ func TestSubscribeController(t *testing.T) {
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			actualResult := string(body)
 
-			if tc.name == "Subscribe Success" {
+			if tc.scenario == "Subscribe Success" {
 				assert.Equal(t, 201, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedSuccessBody, actualResult)
 			} else {
@@ -379,14 +379,14 @@ func TestBlockController(t *testing.T) {
 	// Given
 
 	testCase := []struct {
-		name                string
+		scenario            string
 		inputRequest        RequestUpdate
 		mockError           error
 		expectedErrorBody   string
 		expectedSuccessBody string
 	}{
 		{
-			name: "Block Success",
+			scenario: "Block Success",
 			inputRequest: RequestUpdate{
 				Requestor: "requestor@gmail.com",
 				Target:    "target@gmail.com",
@@ -394,7 +394,7 @@ func TestBlockController(t *testing.T) {
 			expectedSuccessBody: `{"success":true}`,
 		},
 		{
-			name: "Block Fail",
+			scenario: "Block Fail",
 			inputRequest: RequestUpdate{
 				Requestor: "requestor@gmail.com",
 				Target:    "target@gmail.com",
@@ -403,7 +403,7 @@ func TestBlockController(t *testing.T) {
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
 		{
-			name: "Invalid Mail",
+			scenario: "Invalid Mail",
 			inputRequest: RequestUpdate{
 				Requestor: "requestor",
 				Target:    "target",
@@ -411,7 +411,7 @@ func TestBlockController(t *testing.T) {
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
 		},
 		{
-			name: "Not enough parameters",
+			scenario: "Not enough parameters",
 			inputRequest: RequestUpdate{
 				Requestor: "requestor@gmail.com",
 			},
@@ -420,7 +420,7 @@ func TestBlockController(t *testing.T) {
 	}
 
 	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.scenario, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
 			mockFriendship.On("Block", friendship.FrienshipServiceInput{RequestEmail: tc.inputRequest.Requestor, TargetEmail: tc.inputRequest.Target}).Return(tc.mockError)
 
@@ -439,7 +439,7 @@ func TestBlockController(t *testing.T) {
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			actualResult := string(body)
 
-			if tc.name == "Block Success" {
+			if tc.scenario == "Block Success" {
 				assert.Equal(t, 201, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedSuccessBody, actualResult)
 			} else {
@@ -453,7 +453,7 @@ func TestBlockController(t *testing.T) {
 func TestGetUsersReceiveUpdateController(t *testing.T) {
 	// Given
 	testCase := []struct {
-		name                string
+		scenario            string
 		inputRequest        *RequestReceiveUpdate
 		mockRespone         []string
 		mockError           error
@@ -461,7 +461,7 @@ func TestGetUsersReceiveUpdateController(t *testing.T) {
 		expectedSuccessBody string
 	}{
 		{
-			name: "Recvice Success",
+			scenario: "Recvice Success",
 			inputRequest: &RequestReceiveUpdate{
 				Sender: "quang@gmail.com",
 				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
@@ -474,7 +474,7 @@ func TestGetUsersReceiveUpdateController(t *testing.T) {
 			expectedSuccessBody: `{"success":true,"recipients":["buiminhquang@yahoo.com","tonyquangdeptrai@gmail.com","tonyquang9x@gmail.com"]}`,
 		},
 		{
-			name: "Recvice Fail",
+			scenario: "Recvice Fail",
 			inputRequest: &RequestReceiveUpdate{
 				Sender: "quang@gmail.com",
 				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
@@ -483,7 +483,7 @@ func TestGetUsersReceiveUpdateController(t *testing.T) {
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
 		{
-			name: "Invalid Email",
+			scenario: "Invalid Email",
 			inputRequest: &RequestReceiveUpdate{
 				Sender: "quang",
 				Text:   "Hello world!, hi @buiminhquang@yahoo.com",
@@ -491,13 +491,13 @@ func TestGetUsersReceiveUpdateController(t *testing.T) {
 			expectedErrorBody: `{"error":"Email Invalid Format"}`,
 		},
 		{
-			name:              "Empty request body",
+			scenario:          "Empty request body",
 			expectedErrorBody: `{"error":"BindJson Error, cause body request invalid"}`,
 		},
 	}
 
 	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.scenario, func(t *testing.T) {
 			mockFriendship := new(friendship.FrienshipMockService)
 			if tc.inputRequest != nil {
 				mentioned := utils.ExtractMentionEmail(tc.inputRequest.Text)
@@ -519,7 +519,7 @@ func TestGetUsersReceiveUpdateController(t *testing.T) {
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			actualResult := string(body)
 
-			if tc.name == "Recvice Success" {
+			if tc.scenario == "Recvice Success" {
 				assert.Equal(t, 200, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedSuccessBody, actualResult)
 			} else {

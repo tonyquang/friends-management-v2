@@ -18,42 +18,42 @@ import (
 func TestCreateNewUserController(t *testing.T) {
 	// Given
 	testCase := []struct {
-		name              string
+		scenario          string
 		inputRequest      *RequestCreateUser
 		expectedErrorBody string
 	}{
 		{
-			name:              "Create New User Success",
+			scenario:          "Create New User Success",
 			inputRequest:      &RequestCreateUser{"abc@gmail.com"},
 			expectedErrorBody: "",
 		},
 		{
-			name:              "Create New User Fail",
+			scenario:          "Create New User Fail",
 			inputRequest:      &RequestCreateUser{"abc@gmail.com"},
 			expectedErrorBody: "Any error",
 		},
 		{
-			name:              "Invalid User Email",
+			scenario:          "Invalid User Email",
 			inputRequest:      &RequestCreateUser{"abc"},
 			expectedErrorBody: "Invalid Email",
 		},
 		{
-			name:              "Invalid User Email",
+			scenario:          "Invalid User Email",
 			inputRequest:      &RequestCreateUser{"abc"},
 			expectedErrorBody: "Invalid Email",
 		},
 		{
-			name:              "Empty request body",
+			scenario:          "Empty request body",
 			expectedErrorBody: "BindJson Error, cause body request invalid",
 		},
 	}
 
 	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.scenario, func(t *testing.T) {
 			userMock := new(user.UserMockService)
 
 			if tc.inputRequest != nil {
-				if tc.name == "Create New User Fail" {
+				if tc.scenario == "Create New User Fail" {
 					userMock.On("CreateNewUser", user.Users{Email: tc.inputRequest.Email}).Return(errors.New("Any error"))
 				} else {
 					userMock.On("CreateNewUser", user.Users{Email: tc.inputRequest.Email}).Return(nil)
@@ -93,14 +93,14 @@ func TestCreateNewUserController(t *testing.T) {
 func TestGetListUsersController(t *testing.T) {
 	//Given
 	testCase := []struct {
-		name                string
+		scenario            string
 		mockRespone         []string
 		mockError           error
 		expectedErrorBody   string
 		expectedSuccessBody string
 	}{
 		{
-			name: "Get List User Success",
+			scenario: "Get List User Success",
 			mockRespone: []string{
 				"1@gmail.com",
 				"2@gmail.com",
@@ -110,14 +110,14 @@ func TestGetListUsersController(t *testing.T) {
 			expectedSuccessBody: `{"list_users":["1@gmail.com","2@gmail.com","3@gmail.com","4@gmail.com"],"count":4}`,
 		},
 		{
-			name:              "Get List User Fail",
+			scenario:          "Get List User Fail",
 			mockError:         errors.New("Any error"),
 			expectedErrorBody: `{"error":"Any error"}`,
 		},
 	}
 
 	for _, tc := range testCase {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.scenario, func(t *testing.T) {
 			mockUser := new(user.UserMockService)
 			mockUser.On("GetListUser").Return(tc.mockRespone, tc.mockError)
 
@@ -129,7 +129,7 @@ func TestGetListUsersController(t *testing.T) {
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			actualResult := string(body)
 
-			if tc.name == "Get List User Success" {
+			if tc.scenario == "Get List User Success" {
 				assert.Equal(t, 200, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedSuccessBody, actualResult)
 			} else {
