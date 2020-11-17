@@ -10,6 +10,10 @@ import (
 	userService "friends_management_v2/services/user"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	//_ "github.com/swaggo/gin-swagger/example/basic/docs"
 	"gorm.io/gorm"
 )
 
@@ -21,6 +25,9 @@ func Setup(db *gorm.DB) http.Handler {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
+
+	//url := ginSwagger.URL("http://localhost:3000/docs/swagger.json")
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	r.GET("/list-users", func(c *gin.Context) {
 		userController.GetListUsersController(c, userService)

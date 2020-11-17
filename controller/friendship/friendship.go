@@ -17,6 +17,10 @@ type RequestFriend struct {
 	Friends []string `json:"friends" binding:"required"`
 }
 
+type RequestListFriends struct {
+	Mail string `json:"email" binding:"required"`
+}
+
 type RequestReceiveUpdate struct {
 	Sender string `json:"sender" binding:"required"`
 	Text   string `json:"text" binding:"required"`

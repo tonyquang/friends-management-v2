@@ -133,7 +133,7 @@ func TestGetListUsersController(t *testing.T) {
 				assert.Equal(t, 200, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedSuccessBody, actualResult)
 			} else {
-				assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+				assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 				assert.Equal(t, tc.expectedErrorBody, actualResult)
 			}
 		})
