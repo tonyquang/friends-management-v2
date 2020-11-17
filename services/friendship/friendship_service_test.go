@@ -175,13 +175,10 @@ func TestSubscribe(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
 
-	const numUsers int = 2
+	const numUsers int = 4
 	users, ok := InsertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
-
-	firstUser := users[0]
-	secondUser := users[1]
 
 	friendshipManager := NewFriendshipManager(tx)
 
@@ -193,16 +190,16 @@ func TestSubscribe(t *testing.T) {
 		{
 			scenario: "Success in case both isn't friends",
 			mockInput: FrienshipServiceInput{
-				RequestEmail: firstUser,
-				TargetEmail:  secondUser,
+				RequestEmail: users[0],
+				TargetEmail:  users[1],
 			},
 			expectedError: nil,
 		},
 		{
 			scenario: "Success in case both is friends",
 			mockInput: FrienshipServiceInput{
-				RequestEmail: firstUser,
-				TargetEmail:  secondUser,
+				RequestEmail: users[2],
+				TargetEmail:  users[3],
 			},
 			expectedError: nil,
 		},
@@ -210,7 +207,7 @@ func TestSubscribe(t *testing.T) {
 			scenario: "User not exist",
 			mockInput: FrienshipServiceInput{
 				RequestEmail: "usernotexist@notfound.com",
-				TargetEmail:  secondUser,
+				TargetEmail:  users[0],
 			},
 			expectedError: errors.New("User Not Exist"),
 		},
