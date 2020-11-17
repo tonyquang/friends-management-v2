@@ -153,7 +153,7 @@ func TestGetFriendsList(t *testing.T) {
 			scenario:          "Invalid Email",
 			input:             user.Users{Email: "abc"},
 			mockRespone:       nil,
-			expectedErrorBody: `{"error":"Email Invalid Format"}`,
+			expectedErrorBody: `{"error":"Email Invalid Format"}    `,
 		},
 		{
 			scenario:          "Empty request body",
