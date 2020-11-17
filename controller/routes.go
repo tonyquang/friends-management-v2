@@ -51,7 +51,7 @@ func Setup(db *gorm.DB) http.Handler {
 	})
 
 	r.POST("/get-list-users-receive-update", func(c *gin.Context) {
-		friendshipController.GetUsersRecvUpdateController(c, friendshipService)
+		friendshipController.GetUsersReceiveUpdateController(c, friendshipService)
 	})
 	return r
 }

@@ -450,7 +450,7 @@ func TestBlockController(t *testing.T) {
 	}
 }
 
-func TestGetUsersRecvUpdateController(t *testing.T) {
+func TestGetUsersReceiveUpdateController(t *testing.T) {
 	// Given
 	testCase := []struct {
 		name                string
@@ -512,7 +512,7 @@ func TestGetUsersRecvUpdateController(t *testing.T) {
 
 			// When
 
-			GetUsersRecvUpdateController(c, mockFriendship)
+			GetUsersReceiveUpdateController(c, mockFriendship)
 
 			// Then
 

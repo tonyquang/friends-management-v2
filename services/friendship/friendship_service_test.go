@@ -16,7 +16,7 @@ import (
 func TestMakeFriend(t *testing.T) {
 	dbconn := utils.CreateConnection()
 	tx := dbconn.Begin()
-	users, ok := InsertUsersTest(tx, 2)
+	users, ok := insertUsersTest(tx, 2)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, 2, len(users))
 	friendshipManager := NewFriendshipManager(tx)
@@ -64,7 +64,7 @@ func TestGetUserFriendList(t *testing.T) {
 	tx := dbconn.Begin()
 
 	const numUsers int = 10
-	users, ok := InsertUsersTest(tx, numUsers)
+	users, ok := insertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
@@ -115,7 +115,7 @@ func TestGetMutualFriendsList(t *testing.T) {
 	tx := dbconn.Begin()
 
 	const numUsers int = 6
-	users, ok := InsertUsersTest(tx, numUsers)
+	users, ok := insertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
@@ -176,7 +176,7 @@ func TestSubscribe(t *testing.T) {
 	tx := dbconn.Begin()
 
 	const numUsers int = 4
-	users, ok := InsertUsersTest(tx, numUsers)
+	users, ok := insertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
@@ -233,7 +233,7 @@ func TestBlock(t *testing.T) {
 	tx := dbconn.Begin()
 
 	const numUsers int = 2
-	users, ok := InsertUsersTest(tx, numUsers)
+	users, ok := insertUsersTest(tx, numUsers)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, numUsers, len(users))
 
@@ -298,25 +298,25 @@ func TestGetUsersReceiveUpdate(t *testing.T) {
 	friendshipManager := NewFriendshipManager(tx)
 
 	// Sender
-	sender, ok0 := InsertUsersTest(tx, 1)
+	sender, ok0 := insertUsersTest(tx, 1)
 	assert.Equal(t, true, ok0)
 	assert.Equal(t, 1, len(sender))
 
 	// User will be use Make Friend with sender
 	const numUsersMakeFriend int = 3
-	usersWillMakeFriend, ok1 := InsertUsersTest(tx, numUsersMakeFriend)
+	usersWillMakeFriend, ok1 := insertUsersTest(tx, numUsersMakeFriend)
 	assert.Equal(t, true, ok1)
 	assert.Equal(t, numUsersMakeFriend, len(usersWillMakeFriend))
 
 	// User will be use subscribe to sender
 	const numUsersSubscribe int = 3
-	usersSubscribe, ok2 := InsertUsersTest(tx, numUsersSubscribe)
+	usersSubscribe, ok2 := insertUsersTest(tx, numUsersSubscribe)
 	assert.Equal(t, true, ok2)
 	assert.Equal(t, numUsersSubscribe, len(usersSubscribe))
 
 	// User mentioned
 	const numMentionedUsers int = 2
-	mentionedUsers, ok3 := InsertUsersTest(tx, numMentionedUsers)
+	mentionedUsers, ok3 := insertUsersTest(tx, numMentionedUsers)
 	assert.Equal(t, true, ok3)
 	assert.Equal(t, numMentionedUsers, len(mentionedUsers))
 
@@ -374,7 +374,7 @@ func TestGetUsersReceiveUpdate(t *testing.T) {
 }
 
 // InsertUsersTest
-func InsertUsersTest(tx *gorm.DB, numsUser int) ([]string, bool) {
+func insertUsersTest(tx *gorm.DB, numsUser int) ([]string, bool) {
 	listUsers := []string{}
 	userManager := user.NewUserManager(tx)
 	for i := 0; i < numsUser; i++ {

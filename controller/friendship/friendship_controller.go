@@ -63,7 +63,7 @@ func GetFriendsListController(c *gin.Context, service friendship.FrienshipServic
 		return
 	}
 
-	c.JSON(200, ToListFriendsStruct(rs))
+	c.JSON(200, toListFriendsStruct(rs))
 }
 
 func GetMutualFriendsController(c *gin.Context, service friendship.FrienshipServices) {
@@ -94,7 +94,7 @@ func GetMutualFriendsController(c *gin.Context, service friendship.FrienshipServ
 		return
 	}
 
-	c.JSON(200, ToListFriendsStruct(rs))
+	c.JSON(200, toListFriendsStruct(rs))
 }
 
 func SubscribeController(c *gin.Context, service friendship.FrienshipServices) {
@@ -160,7 +160,7 @@ func BlockController(c *gin.Context, service friendship.FrienshipServices) {
 }
 
 // Rename
-func GetUsersRecvUpdateController(c *gin.Context, service friendship.FrienshipServices) {
+func GetUsersReceiveUpdateController(c *gin.Context, service friendship.FrienshipServices) {
 	reqRecvUpdate := RequestReceiveUpdate{}
 
 	if err := c.BindJSON(&reqRecvUpdate); err != nil {
@@ -174,19 +174,19 @@ func GetUsersRecvUpdateController(c *gin.Context, service friendship.FrienshipSe
 	}
 
 	// rename
-	mentioned := utils.ExtractMentionEmail(reqRecvUpdate.Text)
+	mentionedUsers := utils.ExtractMentionEmail(reqRecvUpdate.Text)
 
-	rs, err := service.GetUsersReceiveUpdate(reqRecvUpdate.Sender, mentioned)
+	rs, err := service.GetUsersReceiveUpdate(reqRecvUpdate.Sender, mentionedUsers)
 
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, ToUsersCanRecvUpdate(removeDuplicates(rs)))
+	c.JSON(200, toUsersCanReceiveUpdate(removeDuplicates(rs)))
 }
 
-func ToListFriendsStruct(list []string) ResponeListFriends {
+func toListFriendsStruct(list []string) ResponeListFriends {
 	listFriendsRespone := ResponeListFriends{}
 	listFriendsRespone.Count = uint64(len(list))
 	listFriendsRespone.Success = true
@@ -194,7 +194,7 @@ func ToListFriendsStruct(list []string) ResponeListFriends {
 	return listFriendsRespone
 }
 
-func ToUsersCanRecvUpdate(list []string) ResponeReceiveUpdate {
+func toUsersCanReceiveUpdate(list []string) ResponeReceiveUpdate {
 	listUsersRecvUpdate := ResponeReceiveUpdate{}
 	listUsersRecvUpdate.Success = true
 	listUsersRecvUpdate.Recipients = append(listUsersRecvUpdate.Recipients, list...)
