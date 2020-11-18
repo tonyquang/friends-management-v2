@@ -70,7 +70,7 @@ var doc = `{
                 "tags": [
                     "Friendship"
                 ],
-                "summary": "Block Subscribe to update an user",
+                "summary": "Block update an user",
                 "parameters": [
                     {
                         "description": "Requestor and Target to block update",

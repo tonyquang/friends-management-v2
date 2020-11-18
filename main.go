@@ -15,7 +15,7 @@ func main() {
 	db := utils.CreateConnection()
 	r := handlers.Setup(db)
 	docs.SwaggerInfo.Title = "Friends Management API"
-	docs.SwaggerInfo.Description = "Home Test API"
+	docs.SwaggerInfo.Description = "A Restful API for simple Friends Management application with GO, using gin-gonic/gin (A most popular HTTP framework) and gorm (The fantastic ORM library for Golang)"
 	docs.SwaggerInfo.Version = "2.0"
 	docs.SwaggerInfo.BasePath = "/"
 	docs.SwaggerInfo.Schemes = []string{"http"}

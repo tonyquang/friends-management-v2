@@ -64,8 +64,8 @@ func (m *FriendshipManager) MakeFriend(input FrienshipServiceInput) error {
 		return errors.New("User Not Exist")
 	}
 
-	// When Make Friend First User will subscribe update to Second User
-	return m.execCreateFriendConnection(requestor, target, true, 1)
+	// When Make Friend both user will subscribe together
+	return m.execCreateFriendConnection(requestor, target, true, 2)
 }
 
 // execMakeFriend execute query make friend
