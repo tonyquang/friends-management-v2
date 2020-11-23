@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	host = "localhost" // using for running on localhost
-	//host     = "db"        // using for running on docker
+	//host = "localhost" // using for running on localhost
+	host     = "db" // using for running on docker
 	port     = 5432
 	user     = "postgres"
 	password = "postgres"
