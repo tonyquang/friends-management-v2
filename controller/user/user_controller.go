@@ -68,6 +68,6 @@ func GetListUsersController(c *gin.Context, service userService.UserService) {
 func toListUsers(list []string) ResponeListUser {
 	listUsers := ResponeListUser{}
 	listUsers.ListUsers = append(listUsers.ListUsers, list...)
-	listUsers.Count = uint64(len(list))
+	listUsers.Count = uint(len(list))
 	return listUsers
 }

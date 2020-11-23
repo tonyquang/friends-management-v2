@@ -248,7 +248,7 @@ func GetUsersReceiveUpdateController(c *gin.Context, service friendship.Frienshi
 
 func toListFriendsStruct(list []string) ResponeListFriends {
 	listFriendsRespone := ResponeListFriends{}
-	listFriendsRespone.Count = uint64(len(list))
+	listFriendsRespone.Count = uint(len(list))
 	listFriendsRespone.Success = true
 	listFriendsRespone.Friends = append(listFriendsRespone.Friends, list...)
 	return listFriendsRespone

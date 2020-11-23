@@ -13,7 +13,7 @@ type FrienshipServiceInput struct {
 
 type Friendship struct {
 	gorm.Model
-	ID           uint64     `json:"id" gorm:"column:id; primaryKey"`
+	ID           uint       `json:"id" gorm:"column:id; primaryKey"`
 	FirstUser    string     `json:"first_user" gorm:"column:first_user"`
 	SecondUser   string     `json:"second_user" gorm:"column:second_user"`
 	IsFriend     bool       `json:"is_friend" gorm:"column:is_friend"`

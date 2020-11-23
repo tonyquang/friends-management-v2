@@ -2,7 +2,7 @@ package user
 
 type ResponeListUser struct {
 	ListUsers []string `json:"list_users" binding:"required"`
-	Count     uint64   `json:"count" binding:"required"`
+	Count     uint     `json:"count" binding:"required"`
 }
 
 type RequestCreateUser struct {

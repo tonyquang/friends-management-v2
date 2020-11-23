@@ -4,7 +4,7 @@ package friendship
 type ResponeListFriends struct {
 	Success bool     `json:"success"`
 	Friends []string `json:"friends"`
-	Count   uint64   `json:"count"`
+	Count   uint     `json:"count"`
 }
 
 type ResponeReceiveUpdate struct {
