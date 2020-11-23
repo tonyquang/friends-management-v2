@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	handlers "friends_management_v2/controller"
 	"friends_management_v2/docs"
@@ -20,8 +21,10 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/"
 	docs.SwaggerInfo.Schemes = []string{"http"}
 
-	// var port string = os.Getenv("PORT")
-	// fmt.Println(port)
-	log.Println("Server started on: http://localhost:3000")
-	http.ListenAndServe(":3000", r)
+	var port string = os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+	log.Println("Server started on: http://localhost:" + port)
+	http.ListenAndServe(":"+port, r)
 }
