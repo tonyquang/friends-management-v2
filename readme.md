@@ -82,6 +82,14 @@ This is API self documentation by using Swagger. You can test all of them by exp
 All APIs have been tested carefully by mocking strategy. 
 ![Swagger API Documentation](docs/UnitTest.PNG)
 
+---
+**NOTE**
+
+You have to change host name in file ***utils/connection_db.go*** to ***localhost*** if you run test
+
+---
+
+
 ## Achievement
 
 - [x] Write the tests for all APIs.
