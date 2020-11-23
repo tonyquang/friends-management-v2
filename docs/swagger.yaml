@@ -133,7 +133,11 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/common_respone.HTTPError'
+<<<<<<< HEAD
       summary: Block Subscribe to update an user
+=======
+      summary: Block update an user
+>>>>>>> DONE-API
       tags:
       - Friendship
   /create-user:

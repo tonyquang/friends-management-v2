@@ -8,6 +8,17 @@ import (
 )
 
 func InitMigration(dbconn *gorm.DB) {
+<<<<<<< HEAD
 	dbconn.AutoMigrate(&user.Users{})
 	dbconn.AutoMigrate(&friendship.Friendship{})
+=======
+
+	if oke := dbconn.Migrator().HasTable(&user.Users{}); !oke {
+		dbconn.AutoMigrate(&user.Users{})
+	}
+
+	if oke := dbconn.Migrator().HasTable(&friendship.Friendship{}); !oke {
+		dbconn.AutoMigrate(&friendship.Friendship{})
+	}
+>>>>>>> DONE-API
 }
