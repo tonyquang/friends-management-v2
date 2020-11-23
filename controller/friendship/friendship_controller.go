@@ -170,11 +170,7 @@ func SubscribeController(c *gin.Context, service friendship.FrienshipServices) {
 }
 
 // BlockController godoc
-<<<<<<< HEAD
-// @Summary Block Subscribe to update an user
-=======
 // @Summary Block update an user
->>>>>>> DONE-API
 // @Description Block updates from an email address.
 // @Tags Friendship
 // @Consume json

@@ -147,11 +147,7 @@ func TestGetFriendsList(t *testing.T) {
 			input:             user.Users{Email: "abcxxx@gmail.com"},
 			mockError:         errors.New("Any error"),
 			mockRespone:       nil,
-<<<<<<< HEAD
-			expectedErrorBody: `{"error":"Any error"}    `,
-=======
 			expectedErrorBody: `{"error":"Any error"}`,
->>>>>>> DONE-API
 		},
 		{
 			scenario:          "Invalid Email",

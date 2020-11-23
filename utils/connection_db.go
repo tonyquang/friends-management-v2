@@ -8,12 +8,8 @@ import (
 )
 
 const (
-<<<<<<< HEAD
-	host     = "localhost"
-=======
 	host = "localhost" // using for running on localhost
 	//host     = "db"        // using for running on docker
->>>>>>> DONE-API
 	port     = 5432
 	user     = "postgres"
 	password = "postgres"
@@ -27,12 +23,6 @@ func CreateConnection() *gorm.DB {
 		host, port, user, password, dbname)
 	db, err := gorm.Open(postgres.Open(psqlInfo), &gorm.Config{SkipDefaultTransaction: true})
 
-<<<<<<< HEAD
-	// dsn := "user=" + user + " password=" + password + " dbname=" + dbname + " port=" + port + " sslmode=disable TimeZone=Asia/ho_chi_minh"
-	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
-=======
->>>>>>> DONE-API
 	if err != nil {
 		panic(err)
 	}

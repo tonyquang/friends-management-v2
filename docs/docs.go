@@ -70,11 +70,7 @@ var doc = `{
                 "tags": [
                     "Friendship"
                 ],
-<<<<<<< HEAD
-                "summary": "Block Subscribe to update an user",
-=======
                 "summary": "Block update an user",
->>>>>>> DONE-API
                 "parameters": [
                     {
                         "description": "Requestor and Target to block update",
