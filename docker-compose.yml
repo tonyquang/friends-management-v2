@@ -1,33 +1,39 @@
 version: '3'
-
 services:
+  app:
+    container_name: app_friends_mgmt
+    build: .
+    ports: 
+      - 3000:3000 
+    restart: on-failure
+    volumes:
+      - api:/usr/src/app/
+    depends_on:
+      - db
+    networks:
+      - mynetworks
+
   db:
+    container_name: dbpostgress
     image: postgres:latest
     restart: always
     ports:
       - 5432:5432
     environment:
-      POSTGRES_PASSWORD: 'postgres'
-    volumes:
-      - database_data:/var/lib/postgresql/data
-
-  api:
-    build: ./
-    expose:
-      - 3000
-    ports:
-      - 3000:3000
-    volumes:
-      - ./api:/usr/src/app/
-    links:
-      - db
-    environment:
-      POSTGRES_HOST: localhost
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: FriendsManagement
+      POSTGRES_DB: friend-mgmt
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    networks: 
+      - mynetworks
 
 
 volumes:
-  database_data:
-    driver: local
+  api:
+  database_data:                   # Uncomment this when using mysql.
+
+# Networks to be created to facilitate communication between containers
+networks:
+  mynetworks:
+    driver: bridge

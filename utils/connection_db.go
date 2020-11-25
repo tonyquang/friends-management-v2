@@ -13,7 +13,7 @@ const (
 	port     = 5432
 	user     = "postgres"
 	password = "postgres"
-	dbname   = "FriendsManagement"
+	dbname   = "friend-mgmt"
 )
 
 func CreateConnection() *gorm.DB {
