@@ -58,7 +58,7 @@ host     := "db"
 port     := 5432
 user     := "postgres"
 password := "postgres"
-dbname   := "FriendsManagement"
+dbname   := "friend-mgmt"
 ```
 
 For run docker-compose, run these following commands in project's root folder:
